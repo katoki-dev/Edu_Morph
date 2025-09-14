@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDU-MORPH - AI-Powered Content Creator for Educators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="navigation.js"></script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        .hero-bg {
+            background-image: linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(147, 51, 234, 0.8) 100%), 
+                              url('https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #9333EA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white overflow-x-hidden">
+    <div id="app">
+        <!-- Navigation Bar -->
+        <div id="navigation-container"></div>
+
+        <!-- Hero Section -->
+        <section id="home" class="hero-bg min-h-screen flex items-center justify-center relative">
+            <div class="absolute inset-0 bg-black/40"></div>
+            <div class="relative z-10 max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+                <div class="float-animation">
+                    <div class="inline-block p-3 bg-white/10 backdrop-blur-sm rounded-full mb-6">
+                        <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+                    <span class="gradient-text">AI-Powered Content Creator</span>
+                    <br>
+                    <span class="text-white">for Educators</span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-gray-200 mb-8 max-w-2xl mx-auto leading-relaxed">
+                    Generate lesson notes, quizzes, and flashcards in minutes with the power of artificial intelligence.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <a href="login-simple.html" 
+                       class="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 glow-effect inline-block text-center">
+                        🚀 Start Now
+                    </a>
+                    <button @click="smoothScroll('project')" 
+                            class="px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300 backdrop-blur-sm">
+                        View Project
+                    </button>
+                    <button @click="smoothScroll('about')" 
+                            class="px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300 backdrop-blur-sm">
+                        Meet Our Team
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Scroll Indicator -->
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                </svg>
+            </div>
+        </section>
+
+        <!-- AI Content Generator Section -->
+        <section class="py-20 bg-gray-900">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-6">AI Content Generator</h2>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                        Generate lesson notes, quizzes, and flashcards in minutes with the power of artificial intelligence.
+                    </p>
+                </div>
+
+                <!-- For Logged In Users -->
+                <div v-if="isLoggedIn" class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <!-- Generator Form -->
+                    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl">
+                        <h3 class="text-2xl font-bold text-white mb-6">Create Educational Content</h3>
+                        
+                        <form @submit.prevent="generateContent" class="space-y-6">
+                            <!-- Topic Input -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Topic/Subject</label>
+                                <input v-model="contentForm.topic" type="text" required
+                                       class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="e.g., Engineering Mechanics, Calculus, Physics">
+                            </div>
+
+                            <!-- Content Type -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Content Type</label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <label class="flex items-center p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors">
+                                        <input v-model="contentForm.type" type="radio" value="lesson-notes" class="sr-only">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-4 h-4 border-2 border-gray-400 rounded-full flex items-center justify-center">
+                                                <div v-if="contentForm.type === 'lesson-notes'" class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                            </div>
+                                            <span class="text-white text-sm">Lesson Notes</span>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors">
+                                        <input v-model="contentForm.type" type="radio" value="quiz" class="sr-only">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-4 h-4 border-2 border-gray-400 rounded-full flex items-center justify-center">
+                                                <div v-if="contentForm.type === 'quiz'" class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                            </div>
+                                            <span class="text-white text-sm">Quiz</span>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors">
+                                        <input v-model="contentForm.type" type="radio" value="flashcards" class="sr-only">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-4 h-4 border-2 border-gray-400 rounded-full flex items-center justify-center">
+                                                <div v-if="contentForm.type === 'flashcards'" class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                            </div>
+                                            <span class="text-white text-sm">Flashcards</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Difficulty Level -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Difficulty Level</label>
+                                <select v-model="contentForm.difficulty" 
+                                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </div>
+
+                            <!-- Number of Items -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Number of Items</label>
+                                <input v-model.number="contentForm.count" type="number" min="1" max="20" required
+                                       class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="5">
+                            </div>
+
+                            <!-- Generate Button -->
+                            <button type="submit" :disabled="isGenerating"
+                                    class="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span v-if="!isGenerating">🤖 Generate Content</span>
+                                <span v-else>⏳ Generating...</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Generated Content Display -->
+                    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl">
+                        <h3 class="text-2xl font-bold text-white mb-6">Generated Content</h3>
+                        
+                        <div v-if="generatedContent.length === 0" class="text-center py-12">
+                            <div class="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-gray-400">Your generated content will appear here</p>
+                        </div>
+
+                        <div v-else class="space-y-4 max-h-96 overflow-y-auto">
+                            <div v-for="(item, index) in generatedContent" :key="index" 
+                                 class="bg-gray-700 p-4 rounded-lg">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-white font-medium">{{ item.title }}</h4>
+                                    <button @click="copyToClipboard(item.content)" 
+                                            class="text-blue-400 hover:text-blue-300 text-sm">
+                                        📋 Copy
+                                    </button>
+                                </div>
+                                <div class="text-gray-300 text-sm whitespace-pre-line">{{ item.content }}</div>
+                            </div>
+                        </div>
+
+                        <div v-if="generatedContent.length > 0" class="mt-6 flex justify-center space-x-4">
+                            <button @click="downloadContent" 
+                                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                📥 Download All
+                            </button>
+                            <button @click="clearContent" 
+                                    class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                🗑️ Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- For Non-Logged In Users -->
+                <div v-else class="text-center">
+                    <div class="bg-gray-800 p-12 rounded-2xl shadow-2xl max-w-2xl mx-auto">
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </div>
+                        
+                        <h3 class="text-3xl font-bold text-white mb-4">Access Restricted</h3>
+                        <p class="text-xl text-gray-300 mb-8">
+                            The AI Content Generator is available only to registered users. 
+                            Sign up or log in to start creating educational content with AI.
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <a href="signup-final.html" 
+                               class="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105">
+                                🚀 Sign Up Now
+                            </a>
+                            <a href="login-simple.html" 
+                               class="px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300 backdrop-blur-sm">
+                                🔑 Log In
+                            </a>
+                        </div>
+                        
+                        <div class="mt-8 p-6 bg-gray-700 rounded-lg">
+                            <h4 class="text-lg font-semibold text-white mb-3">What you'll get with an account:</h4>
+                            <ul class="text-gray-300 space-y-2 text-left">
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Generate unlimited lesson notes, quizzes, and flashcards
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Access to AI-powered test creation tools
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Download and save your generated content
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Join the EDU-MORPH learning community
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Section -->
+        <section id="project" class="py-20 bg-gray-800">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-6">Our Project</h2>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                        EDU-MORPH revolutionizes content creation for educators by leveraging cutting-edge AI technology. 
+                        Our platform transforms the way teachers prepare educational materials, making it faster, smarter, and more efficient.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Feature Cards -->
+                    <div class="feature-card bg-gradient-to-br from-gray-700 to-gray-800 p-8 rounded-xl border border-gray-600 hover:border-blue-400 transition-all duration-300">
+                        <div class="text-4xl mb-4">📝</div>
+                        <h3 class="text-2xl font-bold text-blue-400 mb-4">Smart Notes Generation</h3>
+                        <p class="text-gray-300 leading-relaxed">
+                            Automatically generate comprehensive lesson notes from topics, curricula, or existing materials using advanced AI algorithms.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card bg-gradient-to-br from-gray-700 to-gray-800 p-8 rounded-xl border border-gray-600 hover:border-purple-400 transition-all duration-300">
+                        <div class="text-4xl mb-4">🧠</div>
+                        <h3 class="text-2xl font-bold text-purple-400 mb-4">Interactive Quizzes</h3>
+                        <p class="text-gray-300 leading-relaxed">
+                            Create engaging quizzes with multiple question types, instant feedback, and adaptive difficulty levels for better learning outcomes.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card bg-gradient-to-br from-gray-700 to-gray-800 p-8 rounded-xl border border-gray-600 hover:border-green-400 transition-all duration-300">
+                        <div class="text-4xl mb-4">🗂️</div>
+                        <h3 class="text-2xl font-bold text-green-400 mb-4">Digital Flashcards</h3>
+                        <p class="text-gray-300 leading-relaxed">
+                            Generate interactive flashcards with spaced repetition algorithms to enhance student memory retention and recall.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card bg-gradient-to-br from-gray-700 to-gray-800 p-8 rounded-xl border border-gray-600 hover:border-yellow-400 transition-all duration-300">
+                        <div class="text-4xl mb-4">⚡</div>
+                        <h3 class="text-2xl font-bold text-yellow-400 mb-4">Lightning Fast</h3>
+                        <p class="text-gray-300 leading-relaxed">
+                            Save hours of preparation time with instant content generation that maintains high quality and educational standards.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card bg-gradient-to-br from-gray-700 to-gray-800 p-8 rounded-xl border border-gray-600 hover:border-pink-400 transition-all duration-300">
+                        <div class="text-4xl mb-4">🎨</div>
+                        <h3 class="text-2xl font-bold text-pink-400 mb-4">Customizable Content</h3>
+                        <p class="text-gray-300 leading-relaxed">
+                            Tailor content to specific grade levels, learning objectives, and teaching styles with our flexible AI engine.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card bg-gradient-to-br from-gray-700 to-gray-800 p-8 rounded-xl border border-gray-600 hover:border-cyan-400 transition-all duration-300">
+                        <div class="text-4xl mb-4">📊</div>
+                        <h3 class="text-2xl font-bold text-cyan-400 mb-4">Analytics Dashboard</h3>
+                        <p class="text-gray-300 leading-relaxed">
+                            Track student progress, identify learning gaps, and optimize teaching strategies with comprehensive analytics.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-20 bg-gradient-to-br from-gray-900 to-gray-800">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-6">Meet Our Team</h2>
+                    <div class="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-8"></div>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
+                        The passionate minds behind EDU-MORPH, working together to revolutionize education through AI innovation.
+                    </p>
+                </div>
+                
+                <div class="bg-gradient-to-r from-gray-800 to-gray-700 rounded-2xl p-8 md:p-12 shadow-2xl border border-gray-600">
+                    <p class="text-lg md:text-xl text-gray-200 leading-relaxed mb-8 text-center">
+                        EDU-MORPH was born from a simple yet powerful vision: to empower educators with AI-driven tools 
+                        that make teaching more effective and learning more engaging. Our mission is to bridge the gap 
+                        between cutting-edge technology and everyday classroom needs.
+                    </p>
+                    
+                    
+                    <div class="text-center">
+                        <p class="text-lg text-gray-300 leading-relaxed">
+                            Together, we're building the future of education, one AI-powered tool at a time. 
+                            Join us on this exciting journey to transform how knowledge is created and shared.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 border-t border-gray-800 py-8">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <p class="text-gray-400">
+                        © 2025 | Built at Hackathon 🚀
+                    </p>
+                    <p class="text-gray-500 text-sm mt-1">
+                        Empowering educators with AI-driven innovation
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    mobileMenuOpen: false,
+                    isLoggedIn: false,
+                    userName: '',
+                    userInitials: '',
+                    showProfileDropdown: false,
+                    // AI Content Generator Data
+                    contentForm: {
+                        topic: '',
+                        type: 'lesson-notes',
+                        difficulty: 'intermediate',
+                        count: 5
+                    },
+                    generatedContent: [],
+                    isGenerating: false
+                }
+            },
+            methods: {
+                smoothScroll(elementId) {
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        const offsetTop = elementId === 'home' ? 0 : element.offsetTop - 80;
+                        window.scrollTo({
+                            top: offsetTop,
+                            behavior: 'smooth'
+                        });
+                    }
+                },
+                checkLoginStatus() {
+                    const userData = localStorage.getItem('user');
+                    if (userData) {
+                        const user = JSON.parse(userData);
+                        this.isLoggedIn = true;
+                        this.userName = user.name || `${user.firstName} ${user.lastName}` || 'User';
+                        this.userInitials = this.getInitials(this.userName);
+                    } else {
+                        this.isLoggedIn = false;
+                        this.userName = '';
+                        this.userInitials = '';
+                    }
+                },
+                getInitials(name) {
+                    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                },
+                toggleProfileDropdown() {
+                    this.showProfileDropdown = !this.showProfileDropdown;
+                },
+                logout() {
+                    localStorage.removeItem('user');
+                    this.isLoggedIn = false;
+                    this.userName = '';
+                    this.userInitials = '';
+                    this.showProfileDropdown = false;
+                    // Redirect to home page
+                    window.location.href = 'index.html';
+                },
+                // AI Content Generator Methods
+                async generateContent() {
+                    if (!this.contentForm.topic.trim()) {
+                        alert('Please enter a topic!');
+                        return;
+                    }
+                    
+                    this.isGenerating = true;
+                    this.generatedContent = [];
+                    
+                    try {
+                        // Simulate AI generation with realistic content
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        const content = this.generateAIContent(
+                            this.contentForm.topic,
+                            this.contentForm.type,
+                            this.contentForm.difficulty,
+                            this.contentForm.count
+                        );
+                        
+                        this.generatedContent = content;
+                    } catch (error) {
+                        console.error('Error generating content:', error);
+                        alert('Failed to generate content. Please try again.');
+                    } finally {
+                        this.isGenerating = false;
+                    }
+                },
+                
+                generateAIContent(topic, type, difficulty, count) {
+                    const content = [];
+                    
+                    for (let i = 1; i <= count; i++) {
+                        switch (type) {
+                            case 'lesson-notes':
+                                content.push(this.generateLessonNotes(topic, difficulty, i));
+                                break;
+                            case 'quiz':
+                                content.push(this.generateQuiz(topic, difficulty, i));
+                                break;
+                            case 'flashcards':
+                                content.push(this.generateFlashcard(topic, difficulty, i));
+                                break;
+                        }
+                    }
+                    
+                    return content;
+                },
+                
+                generateLessonNotes(topic, difficulty, index) {
+                    const concepts = {
+                        'Engineering Mechanics': ['Newton\'s Laws', 'Free Body Diagrams', 'Moment of Inertia', 'Work-Energy Principle', 'Conservation of Momentum'],
+                        'Calculus': ['Derivatives', 'Integration', 'Limits', 'Chain Rule', 'Fundamental Theorem'],
+                        'Physics': ['Electromagnetic Fields', 'Wave Properties', 'Thermodynamics', 'Quantum Mechanics', 'Relativity'],
+                        'default': ['Core Concepts', 'Fundamental Principles', 'Key Theories', 'Important Applications', 'Advanced Topics']
+                    };
+                    
+                    const concept = concepts[topic] || concepts['default'];
+                    const selectedConcept = concept[index % concept.length];
+                    
+                    return {
+                        title: `${selectedConcept} - ${topic}`,
+                        content: `# ${selectedConcept}\n\n## Overview\n${selectedConcept} is a fundamental concept in ${topic} that deals with the ${this.getDifficultyDescription(difficulty)} aspects of the subject.\n\n## Key Points\n• Definition and basic principles\n• Mathematical formulations and equations\n• Real-world applications and examples\n• Common problems and solutions\n• Related concepts and connections\n\n## Practice Problems\n1. Calculate the ${this.getDifficultyExample(difficulty, topic)}\n2. Apply the concept to solve practical problems\n3. Analyze the relationship with other topics\n\n## Summary\n${selectedConcept} provides the foundation for understanding more advanced topics in ${topic} and is essential for ${this.getDifficultyOutcome(difficulty)}.`
+                    };
+                },
+                
+                generateQuiz(topic, difficulty, index) {
+                    const questions = {
+                        'Engineering Mechanics': [
+                            'What is Newton\'s second law of motion?',
+                            'How do you calculate the moment of a force?',
+                            'What is the principle of virtual work?',
+                            'Define the center of mass.',
+                            'What is the difference between static and dynamic equilibrium?'
+                        ],
+                        'Calculus': [
+                            'What is the derivative of x²?',
+                            'How do you find the integral of 1/x?',
+                            'What is the chain rule?',
+                            'Define the limit of a function.',
+                            'What is the fundamental theorem of calculus?'
+                        ],
+                        'Physics': [
+                            'What is the speed of light in vacuum?',
+                            'Define Ohm\'s law.',
+                            'What is the difference between kinetic and potential energy?',
+                            'Explain the photoelectric effect.',
+                            'What is the uncertainty principle?'
+                        ],
+                        'default': [
+                            'What is the main concept in this topic?',
+                            'How does this principle apply?',
+                            'What are the key characteristics?',
+                            'What are the practical applications?',
+                            'How does this relate to other topics?'
+                        ]
+                    };
+                    
+                    const questionSet = questions[topic] || questions['default'];
+                    const question = questionSet[index % questionSet.length];
+                    
+                    return {
+                        title: `Quiz Question ${index} - ${topic}`,
+                        content: `**Question ${index}:** ${question}\n\n**Options:**\nA) ${this.generateOption(1, topic, difficulty)}\nB) ${this.generateOption(2, topic, difficulty)}\nC) ${this.generateOption(3, topic, difficulty)}\nD) ${this.generateOption(4, topic, difficulty)}\n\n**Correct Answer:** ${['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)]}\n\n**Explanation:** This question tests your understanding of ${this.getDifficultyDescription(difficulty)} concepts in ${topic}. The correct answer demonstrates the fundamental principles and their practical applications.`
+                    };
+                },
+                
+                generateFlashcard(topic, difficulty, index) {
+                    const terms = {
+                        'Engineering Mechanics': ['Force', 'Moment', 'Equilibrium', 'Friction', 'Energy'],
+                        'Calculus': ['Derivative', 'Integral', 'Limit', 'Function', 'Variable'],
+                        'Physics': ['Velocity', 'Acceleration', 'Mass', 'Charge', 'Field'],
+                        'default': ['Concept', 'Principle', 'Theory', 'Law', 'Formula']
+                    };
+                    
+                    const termSet = terms[topic] || terms['default'];
+                    const term = termSet[index % termSet.length];
+                    
+                    return {
+                        title: `Flashcard ${index} - ${term}`,
+                        content: `**Front:** ${term}\n\n**Back:** ${this.generateDefinition(term, topic, difficulty)}\n\n**Example:** ${this.generateExample(term, topic)}\n\n**Related Terms:** ${this.generateRelatedTerms(term, topic)}\n\n**Difficulty Level:** ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`
+                    };
+                },
+                
+                getDifficultyDescription(difficulty) {
+                    const descriptions = {
+                        'beginner': 'basic and introductory',
+                        'intermediate': 'moderate and practical',
+                        'advanced': 'complex and theoretical'
+                    };
+                    return descriptions[difficulty] || descriptions['intermediate'];
+                },
+                
+                getDifficultyExample(difficulty, topic) {
+                    const examples = {
+                        'beginner': 'basic problem using fundamental formulas',
+                        'intermediate': 'real-world application with multiple steps',
+                        'advanced': 'complex scenario requiring deep understanding'
+                    };
+                    return examples[difficulty] || examples['intermediate'];
+                },
+                
+                getDifficultyOutcome(difficulty) {
+                    const outcomes = {
+                        'beginner': 'building a strong foundation',
+                        'intermediate': 'solving practical problems',
+                        'advanced': 'conducting research and analysis'
+                    };
+                    return outcomes[difficulty] || outcomes['intermediate'];
+                },
+                
+                generateOption(optionNum, topic, difficulty) {
+                    const options = {
+                        1: `Basic ${topic} concept`,
+                        2: `Advanced ${topic} principle`,
+                        3: `Practical ${topic} application`,
+                        4: `Theoretical ${topic} framework`
+                    };
+                    return options[optionNum] || `Option ${optionNum}`;
+                },
+                
+                generateDefinition(term, topic, difficulty) {
+                    return `A fundamental concept in ${topic} that represents ${this.getDifficultyDescription(difficulty)} understanding of ${term.toLowerCase()}. It involves the core principles and mathematical relationships that govern this concept in practical applications.`;
+                },
+                
+                generateExample(term, topic) {
+                    return `In ${topic}, ${term} can be observed when analyzing real-world scenarios such as mechanical systems, mathematical functions, or physical phenomena.`;
+                },
+                
+                generateRelatedTerms(term, topic) {
+                    const related = {
+                        'Force': 'Moment, Equilibrium, Friction',
+                        'Derivative': 'Integral, Limit, Function',
+                        'Velocity': 'Acceleration, Speed, Displacement',
+                        'default': 'Related concepts, Principles, Applications'
+                    };
+                    return related[term] || related['default'];
+                },
+                
+                copyToClipboard(content) {
+                    navigator.clipboard.writeText(content).then(() => {
+                        alert('Content copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy content');
+                    });
+                },
+                
+                downloadContent() {
+                    if (this.generatedContent.length === 0) {
+                        alert('No content to download!');
+                        return;
+                    }
+                    
+                    let content = `# Generated ${this.contentForm.type.replace('-', ' ').toUpperCase()} - ${this.contentForm.topic}\n\n`;
+                    content += `Generated on: ${new Date().toLocaleDateString()}\n`;
+                    content += `Difficulty: ${this.contentForm.difficulty}\n`;
+                    content += `Number of items: ${this.contentForm.count}\n\n`;
+                    content += '---\n\n';
+                    
+                    this.generatedContent.forEach((item, index) => {
+                        content += `## ${item.title}\n\n${item.content}\n\n---\n\n`;
+                    });
+                    
+                    const blob = new Blob([content], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${this.contentForm.topic}_${this.contentForm.type}_${new Date().toISOString().split('T')[0]}.md`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                
+                clearContent() {
+                    this.generatedContent = [];
+                }
+            },
+            mounted() {
+                this.checkLoginStatus();
+                
+                // Initialize navigation system
+                this.initializeNavigation();
+                
+                // Check login status every time the page loads
+                window.addEventListener('storage', () => {
+                    this.checkLoginStatus();
+                });
+                
+                // Add scroll event listener for navbar background
+                window.addEventListener('scroll', () => {
+                    const navbar = document.querySelector('nav');
+                    if (navbar) {
+                        if (window.scrollY > 100) {
+                            navbar.classList.add('bg-gray-900');
+                            navbar.classList.remove('bg-gray-900/95');
+                        } else {
+                            navbar.classList.add('bg-gray-900/95');
+                            navbar.classList.remove('bg-gray-900');
+                        }
+                    }
+                });
+                
+                // Close profile dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.relative')) {
+                        this.showProfileDropdown = false;
+                    }
+                });
+            },
+            
+            methods: {
+                initializeNavigation() {
+                    // Initialize navigation system
+                    if (window.navigation) {
+                        const navContainer = document.getElementById('navigation-container');
+                        if (navContainer) {
+                            navContainer.innerHTML = window.navigation.generateNavigationHTML();
+                            window.navigation.initialize();
+                        }
+                    }
+                },
+                
+                smoothScroll(elementId) {
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        const offsetTop = elementId === 'home' ? 0 : element.offsetTop - 80;
+                        window.scrollTo({
+                            top: offsetTop,
+                            behavior: 'smooth'
+                        });
+                    }
+                },
+                checkLoginStatus() {
+                    const userData = localStorage.getItem('user');
+                    if (userData) {
+                        const user = JSON.parse(userData);
+                        this.isLoggedIn = true;
+                        this.userName = user.name || `${user.firstName} ${user.lastName}` || 'User';
+                        this.userInitials = this.getInitials(this.userName);
+                    } else {
+                        this.isLoggedIn = false;
+                        this.userName = '';
+                        this.userInitials = '';
+                    }
+                },
+                getInitials(name) {
+                    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                },
+                toggleProfileDropdown() {
+                    this.showProfileDropdown = !this.showProfileDropdown;
+                },
+                logout() {
+                    localStorage.removeItem('user');
+                    this.isLoggedIn = false;
+                    this.userName = '';
+                    this.userInitials = '';
+                    this.showProfileDropdown = false;
+                    // Redirect to home page
+                    window.location.href = 'index.html';
+                },
+                // AI Content Generator Methods
+                async generateContent() {
+                    if (!this.contentForm.topic.trim()) {
+                        alert('Please enter a topic!');
+                        return;
+                    }
+                    
+                    this.isGenerating = true;
+                    this.generatedContent = [];
+                    
+                    try {
+                        // Simulate AI generation with realistic content
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        const content = this.generateAIContent(
+                            this.contentForm.topic,
+                            this.contentForm.type,
+                            this.contentForm.difficulty,
+                            this.contentForm.count
+                        );
+                        
+                        this.generatedContent = content;
+                    } catch (error) {
+                        console.error('Error generating content:', error);
+                        alert('Failed to generate content. Please try again.');
+                    } finally {
+                        this.isGenerating = false;
+                    }
+                },
+                
+                generateAIContent(topic, type, difficulty, count) {
+                    const content = [];
+                    
+                    for (let i = 1; i <= count; i++) {
+                        switch (type) {
+                            case 'lesson-notes':
+                                content.push(this.generateLessonNotes(topic, difficulty, i));
+                                break;
+                            case 'quiz':
+                                content.push(this.generateQuiz(topic, difficulty, i));
+                                break;
+                            case 'flashcards':
+                                content.push(this.generateFlashcard(topic, difficulty, i));
+                                break;
+                        }
+                    }
+                    
+                    return content;
+                },
+                
+                generateLessonNotes(topic, difficulty, index) {
+                    const concepts = {
+                        'Engineering Mechanics': ['Newton\'s Laws', 'Free Body Diagrams', 'Moment of Inertia', 'Work-Energy Principle', 'Conservation of Momentum'],
+                        'Calculus': ['Derivatives', 'Integration', 'Limits', 'Chain Rule', 'Fundamental Theorem'],
+                        'Physics': ['Electromagnetic Fields', 'Wave Properties', 'Thermodynamics', 'Quantum Mechanics', 'Relativity'],
+                        'default': ['Core Concepts', 'Fundamental Principles', 'Key Theories', 'Important Applications', 'Advanced Topics']
+                    };
+                    
+                    const concept = concepts[topic] || concepts['default'];
+                    const selectedConcept = concept[index % concept.length];
+                    
+                    return {
+                        title: `${selectedConcept} - ${topic}`,
+                        content: `# ${selectedConcept}\n\n## Overview\n${selectedConcept} is a fundamental concept in ${topic} that deals with the ${this.getDifficultyDescription(difficulty)} aspects of the subject.\n\n## Key Points\n• Definition and basic principles\n• Mathematical formulations and equations\n• Real-world applications and examples\n• Common problems and solutions\n• Related concepts and connections\n\n## Practice Problems\n1. Calculate the ${this.getDifficultyExample(difficulty, topic)}\n2. Apply the concept to solve practical problems\n3. Analyze the relationship with other topics\n\n## Summary\n${selectedConcept} provides the foundation for understanding more advanced topics in ${topic} and is essential for ${this.getDifficultyOutcome(difficulty)}.`
+                    };
+                },
+                
+                generateQuiz(topic, difficulty, index) {
+                    const questions = {
+                        'Engineering Mechanics': [
+                            'What is Newton\'s second law of motion?',
+                            'How do you calculate the moment of a force?',
+                            'What is the principle of virtual work?',
+                            'Define the center of mass.',
+                            'What is the difference between static and dynamic equilibrium?'
+                        ],
+                        'Calculus': [
+                            'What is the derivative of x²?',
+                            'How do you find the integral of 1/x?',
+                            'What is the chain rule?',
+                            'Define the limit of a function.',
+                            'What is the fundamental theorem of calculus?'
+                        ],
+                        'Physics': [
+                            'What is the speed of light in vacuum?',
+                            'Define Ohm\'s law.',
+                            'What is the difference between kinetic and potential energy?',
+                            'Explain the photoelectric effect.',
+                            'What is the uncertainty principle?'
+                        ],
+                        'default': [
+                            'What is the main concept in this topic?',
+                            'How does this principle apply?',
+                            'What are the key characteristics?',
+                            'What are the practical applications?',
+                            'How does this relate to other topics?'
+                        ]
+                    };
+                    
+                    const questionSet = questions[topic] || questions['default'];
+                    const question = questionSet[index % questionSet.length];
+                    
+                    return {
+                        title: `Quiz Question ${index} - ${topic}`,
+                        content: `**Question ${index}:** ${question}\n\n**Options:**\nA) ${this.generateOption(1, topic, difficulty)}\nB) ${this.generateOption(2, topic, difficulty)}\nC) ${this.generateOption(3, topic, difficulty)}\nD) ${this.generateOption(4, topic, difficulty)}\n\n**Correct Answer:** ${['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)]}\n\n**Explanation:** This question tests your understanding of ${this.getDifficultyDescription(difficulty)} concepts in ${topic}. The correct answer demonstrates the fundamental principles and their practical applications.`
+                    };
+                },
+                
+                generateFlashcard(topic, difficulty, index) {
+                    const terms = {
+                        'Engineering Mechanics': ['Force', 'Moment', 'Equilibrium', 'Friction', 'Energy'],
+                        'Calculus': ['Derivative', 'Integral', 'Limit', 'Function', 'Variable'],
+                        'Physics': ['Velocity', 'Acceleration', 'Mass', 'Charge', 'Field'],
+                        'default': ['Concept', 'Principle', 'Theory', 'Law', 'Formula']
+                    };
+                    
+                    const termSet = terms[topic] || terms['default'];
+                    const term = termSet[index % termSet.length];
+                    
+                    return {
+                        title: `Flashcard ${index} - ${term}`,
+                        content: `**Front:** ${term}\n\n**Back:** ${this.generateDefinition(term, topic, difficulty)}\n\n**Example:** ${this.generateExample(term, topic)}\n\n**Related Terms:** ${this.generateRelatedTerms(term, topic)}\n\n**Difficulty Level:** ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`
+                    };
+                },
+                
+                getDifficultyDescription(difficulty) {
+                    const descriptions = {
+                        'beginner': 'basic and introductory',
+                        'intermediate': 'moderate and practical',
+                        'advanced': 'complex and theoretical'
+                    };
+                    return descriptions[difficulty] || descriptions['intermediate'];
+                },
+                
+                getDifficultyExample(difficulty, topic) {
+                    const examples = {
+                        'beginner': 'basic problem using fundamental formulas',
+                        'intermediate': 'real-world application with multiple steps',
+                        'advanced': 'complex scenario requiring deep understanding'
+                    };
+                    return examples[difficulty] || examples['intermediate'];
+                },
+                
+                getDifficultyOutcome(difficulty) {
+                    const outcomes = {
+                        'beginner': 'building a strong foundation',
+                        'intermediate': 'solving practical problems',
+                        'advanced': 'conducting research and analysis'
+                    };
+                    return outcomes[difficulty] || outcomes['intermediate'];
+                },
+                
+                generateOption(optionNum, topic, difficulty) {
+                    const options = {
+                        1: `Basic ${topic} concept`,
+                        2: `Advanced ${topic} principle`,
+                        3: `Practical ${topic} application`,
+                        4: `Theoretical ${topic} framework`
+                    };
+                    return options[optionNum] || `Option ${optionNum}`;
+                },
+                
+                generateDefinition(term, topic, difficulty) {
+                    return `A fundamental concept in ${topic} that represents ${this.getDifficultyDescription(difficulty)} understanding of ${term.toLowerCase()}. It involves the core principles and mathematical relationships that govern this concept in practical applications.`;
+                },
+                
+                generateExample(term, topic) {
+                    return `In ${topic}, ${term} can be observed when analyzing real-world scenarios such as mechanical systems, mathematical functions, or physical phenomena.`;
+                },
+                
+                generateRelatedTerms(term, topic) {
+                    const related = {
+                        'Force': 'Moment, Equilibrium, Friction',
+                        'Derivative': 'Integral, Limit, Function',
+                        'Velocity': 'Acceleration, Speed, Displacement',
+                        'default': 'Related concepts, Principles, Applications'
+                    };
+                    return related[term] || related['default'];
+                },
+                
+                copyToClipboard(content) {
+                    navigator.clipboard.writeText(content).then(() => {
+                        alert('Content copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy content');
+                    });
+                },
+                
+                downloadContent() {
+                    if (this.generatedContent.length === 0) {
+                        alert('No content to download!');
+                        return;
+                    }
+                    
+                    let content = `# Generated ${this.contentForm.type.replace('-', ' ').toUpperCase()} - ${this.contentForm.topic}\n\n`;
+                    content += `Generated on: ${new Date().toLocaleDateString()}\n`;
+                    content += `Difficulty: ${this.contentForm.difficulty}\n`;
+                    content += `Number of items: ${this.contentForm.count}\n\n`;
+                    content += '---\n\n';
+                    
+                    this.generatedContent.forEach((item, index) => {
+                        content += `## ${item.title}\n\n${item.content}\n\n---\n\n`;
+                    });
+                    
+                    const blob = new Blob([content], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${this.contentForm.topic}_${this.contentForm.type}_${new Date().toISOString().split('T')[0]}.md`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                
+                clearContent() {
+                    this.generatedContent = [];
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

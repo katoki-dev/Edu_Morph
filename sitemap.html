@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDU-MORPH - Site Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="navigation.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .page-card {
+            transition: all 0.3s ease;
+        }
+        
+        .page-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-active { background-color: #d1fae5; color: #065f46; }
+        .status-beta { background-color: #fef3c7; color: #92400e; }
+        .status-development { background-color: #fee2e2; color: #991b1b; }
+        .status-testing { background-color: #e0e7ff; color: #3730a3; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app">
+        <!-- Navigation will be inserted here -->
+        <div id="navigation-container"></div>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">EDU-MORPH Site Map</h1>
+                <p class="text-xl text-gray-600">Complete navigation guide for all pages and features</p>
+            </div>
+
+            <!-- Breadcrumbs -->
+            <nav class="mb-8" data-breadcrumbs>
+                <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                    <li><a href="index.html" class="hover:text-gray-700">Home</a></li>
+                    <li>/</li>
+                    <li class="text-gray-900">Site Map</li>
+                </ol>
+            </nav>
+
+            <!-- Main Pages -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Main Application Pages</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Home Page -->
+                    <div class="page-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Home Page</h3>
+                            <span class="status-badge status-active">Active</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Landing page with AI content generator and project overview</p>
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-500">File: <code>index.html</code></div>
+                            <div class="text-sm text-gray-500">Features: Hero section, AI generator, team info</div>
+                            <div class="text-sm text-gray-500">Access: Public</div>
+                        </div>
+                        <a href="index.html" class="inline-block mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            Visit Page
+                        </a>
+                    </div>
+
+                    <!-- Authentication Pages -->
+                    <div class="page-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Authentication</h3>
+                            <span class="status-badge status-active">Active</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">User login and registration system</p>
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-500">Files: <code>login-simple.html</code>, <code>signup-final.html</code></div>
+                            <div class="text-sm text-gray-500">Features: Dual database support, role selection</div>
+                            <div class="text-sm text-gray-500">Access: Public</div>
+                        </div>
+                        <div class="flex space-x-2 mt-4">
+                            <a href="login-simple.html" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
+                                Login
+                            </a>
+                            <a href="signup-final.html" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm">
+                                Sign Up
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard -->
+                    <div class="page-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Dashboard</h3>
+                            <span class="status-badge status-active">Active</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Main dashboard with role-based interface</p>
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-500">File: <code>dashboard-simple.html</code></div>
+                            <div class="text-sm text-gray-500">Features: Analytics, student management, content tools</div>
+                            <div class="text-sm text-gray-500">Access: Authenticated users</div>
+                        </div>
+                        <a href="dashboard-simple.html" class="inline-block mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            Visit Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document AI System -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Document AI System</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Document AI Generator -->
+                    <div class="page-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Document AI Generator</h3>
+                            <span class="status-badge status-active">Active</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Main interface for document upload and AI content generation</p>
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-500">File: <code>document-ai-generator.html</code></div>
+                            <div class="text-sm text-gray-500">Features: File upload, AI generation, content management</div>
+                            <div class="text-sm text-gray-500">Access: Authenticated users</div>
+                        </div>
+                        <a href="document-ai-generator.html" class="inline-block mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            Use Generator
+                        </a>
+                    </div>
+
+                    <!-- Optimized Version -->
+                    <div class="page-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Optimized Version</h3>
+                            <span class="status-badge status-active">Active</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Performance-optimized version with monitoring</p>
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-500">File: <code>document-ai-optimized.html</code></div>
+                            <div class="text-sm text-gray-500">Features: Performance monitoring, enhanced UX</div>
+                            <div class="text-sm text-gray-500">Access: Authenticated users</div>
+                        </div>
+                        <a href="document-ai-optimized.html" class="inline-block mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                            Use Optimized
+                        </a>
+                    </div>
+
+                    <!-- Test Interface -->
+                    <div class="page-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Test Interface</h3>
+                            <span class="status-badge status-testing">Testing</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Testing interface for document AI functionality</p>
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-500">File: <code>test-document-ai.html</code></div>
+                            <div class="text-sm text-gray-500">Features: Performance testing, sample documents</div>
+                            <div class="text-sm text-gray-500">Access: Developers</div>
+                        </div>
+                        <a href="test-document-ai.html" class="inline-block mt-4 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors">
+                            Run Tests
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testing Pages -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Testing & Development Pages</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Test Pages -->
+                    <div class="page-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">System Tests</h3>
+                            <span class="status-badge status-testing">Testing</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Various test pages for system components</p>
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-500">Files: Multiple test files</div>
+                            <div class="text-sm text-gray-500">Features: Database, login, chatbot, modules</div>
+                            <div class="text-sm text-gray-500">Access: Developers</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-4">
+                            <a href="test-chatbot.html" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm text-center">
+                                Chatbot
+                            </a>
+                            <a href="test-database.html" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm text-center">
+                                Database
+                            </a>
+                            <a href="test-login.html" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm text-center">
+                                Login
+                            </a>
+                            <a href="test-supabase.html" class="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm text-center">
+                                Supabase
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Database Setup -->
+                    <div class="page-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Database Setup</h3>
+                            <span class="status-badge status-development">Development</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Database configuration and setup tools</p>
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-500">File: <code>setup-database.html</code></div>
+                            <div class="text-sm text-gray-500">Features: Database initialization, schema setup</div>
+                            <div class="text-sm text-gray-500">Access: Administrators</div>
+                        </div>
+                        <a href="setup-database.html" class="inline-block mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            Setup Database
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documentation -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Documentation</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- README Files -->
+                    <div class="page-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Documentation</h3>
+                            <span class="status-badge status-active">Active</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Comprehensive documentation for the system</p>
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-500">Files: Multiple .md files</div>
+                            <div class="text-sm text-gray-500">Features: Setup guides, API docs, optimization</div>
+                            <div class="text-sm text-gray-500">Access: Public</div>
+                        </div>
+                        <div class="space-y-2 mt-4">
+                            <div class="text-sm text-gray-700">📚 <a href="README.md" class="text-blue-600 hover:underline">Main README</a></div>
+                            <div class="text-sm text-gray-700">🤖 <a href="DOCUMENT-AI-README.md" class="text-blue-600 hover:underline">Document AI Guide</a></div>
+                            <div class="text-sm text-gray-700">⚡ <a href="OPTIMIZATION-GUIDE.md" class="text-blue-600 hover:underline">Optimization Guide</a></div>
+                            <div class="text-sm text-gray-700">🚀 <a href="RUN-AND-ACCESS.md" class="text-blue-600 hover:underline">Run & Access Guide</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Navigation -->
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-8 text-white">
+                <h2 class="text-2xl font-bold mb-4">Quick Navigation</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <a href="index.html" class="bg-white bg-opacity-20 rounded-lg p-4 text-center hover:bg-opacity-30 transition-all">
+                        <div class="text-2xl mb-2">🏠</div>
+                        <div class="font-semibold">Home</div>
+                    </a>
+                    <a href="dashboard-simple.html" class="bg-white bg-opacity-20 rounded-lg p-4 text-center hover:bg-opacity-30 transition-all">
+                        <div class="text-2xl mb-2">📊</div>
+                        <div class="font-semibold">Dashboard</div>
+                    </a>
+                    <a href="document-ai-generator.html" class="bg-white bg-opacity-20 rounded-lg p-4 text-center hover:bg-opacity-30 transition-all">
+                        <div class="text-2xl mb-2">🤖</div>
+                        <div class="font-semibold">Document AI</div>
+                    </a>
+                    <a href="test-document-ai.html" class="bg-white bg-opacity-20 rounded-lg p-4 text-center hover:bg-opacity-30 transition-all">
+                        <div class="text-2xl mb-2">🧪</div>
+                        <div class="font-semibold">Testing</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            const navContainer = document.getElementById('navigation-container');
+            if (navContainer && window.navigation) {
+                navContainer.innerHTML = window.navigation.generateNavigationHTML();
+                window.navigation.initialize();
+            }
+        });
+    </script>
+</body>
+</html>

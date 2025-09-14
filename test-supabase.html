@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #9333EA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold gradient-text mb-8">Supabase Connection Test</h1>
+        
+        <div class="bg-gray-800 p-6 rounded-lg mb-6">
+            <h2 class="text-2xl font-semibold mb-4">Test Results</h2>
+            <div id="test-results" class="space-y-4">
+                <div class="text-gray-400">Running tests...</div>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 p-6 rounded-lg">
+            <h2 class="text-2xl font-semibold mb-4">Test Actions</h2>
+            <div class="space-x-4">
+                <button onclick="testConnection()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Test Connection
+                </button>
+                <button onclick="testCreateUser()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    Test Create User
+                </button>
+                <button onclick="testGetUsers()" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                    Test Get Users
+                </button>
+                <button onclick="clearResults()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                    Clear Results
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://cebrqzdpjksxozfqbetd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlYnJxemRwamtzeG96ZnFiZXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3OTIxMzcsImV4cCI6MjA3MzM2ODEzN30._kdp2jItLixL0LRiBjYYCIJvBYRg4VaF2ZgtwDfiEd0';
+
+        // Helper function to make Supabase requests
+        async function supabaseRequest(endpoint, options = {}) {
+            const url = `${SUPABASE_URL}${endpoint}`;
+            const headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation',
+                ...options.headers
+            };
+            
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers
+                });
+                
+                if (response.status === 201) {
+                    const data = await response.json();
+                    return { data: data, error: null };
+                }
+                
+                if (response.status === 204) {
+                    return { data: null, error: null };
+                }
+                
+                const data = await response.json();
+                return {
+                    data: response.ok ? data : null,
+                    error: response.ok ? null : { message: data.message || data.error_description || 'Request failed' }
+                };
+            } catch (error) {
+                return {
+                    data: null,
+                    error: { message: error.message }
+                };
+            }
+        }
+
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('test-results');
+            const colorClass = type === 'success' ? 'text-green-400' : type === 'error' ? 'text-red-400' : 'text-blue-400';
+            resultsDiv.innerHTML += `<div class="${colorClass}">${new Date().toLocaleTimeString()}: ${message}</div>`;
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '<div class="text-gray-400">Results cleared</div>';
+        }
+
+        async function testConnection() {
+            addResult('Testing Supabase connection...', 'info');
+            
+            try {
+                const { data, error } = await supabaseRequest('/rest/v1/simple_users?select=count');
+                
+                if (error) {
+                    addResult(`❌ Connection failed: ${error.message}`, 'error');
+                } else {
+                    addResult('✅ Connection successful!', 'success');
+                }
+            } catch (err) {
+                addResult(`❌ Connection error: ${err.message}`, 'error');
+            }
+        }
+
+        async function testCreateUser() {
+            addResult('Testing user creation...', 'info');
+            
+            const testUser = {
+                email: `test_${Date.now()}@example.com`,
+                first_name: 'Test',
+                last_name: 'User',
+                role: 'student'
+            };
+            
+            try {
+                const { data, error } = await supabaseRequest('/rest/v1/simple_users', {
+                    method: 'POST',
+                    body: JSON.stringify(testUser)
+                });
+                
+                if (error) {
+                    addResult(`❌ User creation failed: ${error.message}`, 'error');
+                } else {
+                    const createdUser = Array.isArray(data) ? data[0] : data;
+                    addResult(`✅ User created successfully! ID: ${createdUser?.id}`, 'success');
+                }
+            } catch (err) {
+                addResult(`❌ User creation error: ${err.message}`, 'error');
+            }
+        }
+
+        async function testGetUsers() {
+            addResult('Testing user retrieval...', 'info');
+            
+            try {
+                const { data, error } = await supabaseRequest('/rest/v1/simple_users?select=*&limit=5');
+                
+                if (error) {
+                    addResult(`❌ User retrieval failed: ${error.message}`, 'error');
+                } else {
+                    addResult(`✅ Retrieved ${data?.length || 0} users successfully!`, 'success');
+                    if (data && data.length > 0) {
+                        data.forEach((user, index) => {
+                            addResult(`  User ${index + 1}: ${user.first_name} ${user.last_name} (${user.email})`, 'info');
+                        });
+                    }
+                }
+            } catch (err) {
+                addResult(`❌ User retrieval error: ${err.message}`, 'error');
+            }
+        }
+
+        // Run initial connection test
+        window.onload = function() {
+            testConnection();
+        };
+    </script>
+</body>
+</html>

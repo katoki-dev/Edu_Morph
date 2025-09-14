@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #9333EA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+        
+        .shape:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            top: 40%;
+            left: 80%;
+            animation-delay: 4s;
+        }
+        
+        .shape:nth-child(4) {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 1s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        
+        .glow-effect:hover {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="app">
+        <!-- Hero Background with Floating Shapes -->
+        <div class="hero-bg min-h-screen flex items-center justify-center relative">
+            <!-- Floating Shapes -->
+            <div class="floating-shapes">
+                <div class="shape"></div>
+                <div class="shape"></div>
+                <div class="shape"></div>
+                <div class="shape"></div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="absolute top-0 left-0 right-0 bg-transparent backdrop-blur-md shadow-lg z-10 border-b border-white/20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <a href="index.html" class="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-300 cursor-pointer">
+                            <div class="w-10 h-10 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 shadow-lg overflow-hidden">
+                                <img src="logo.png" alt="EDU-MORPH Logo" class="w-8 h-8 object-contain">
+                            </div>
+                            <span class="text-xl font-bold text-white drop-shadow-lg">EDU-MORPH</span>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="signup-final.html" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 font-medium">Sign Up</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+            <!-- Main Content -->
+            <div class="w-full max-w-md mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="glass-card rounded-2xl p-8 space-y-8">
+                    <div class="text-center">
+                        <h2 class="text-3xl font-extrabold text-white mb-2">
+                            Welcome Back
+                        </h2>
+                        <p class="text-gray-200 text-lg">
+                            Sign in to your EDU-MORPH account
+                        </p>
+                    </div>
+                
+                    <form @submit.prevent="handleLogin" class="space-y-6">
+                        <div class="space-y-4">
+                            <!-- Email -->
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-200 mb-2">Email Address</label>
+                                <input v-model="loginForm.email" id="email" name="email" type="email" required
+                                       class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm"
+                                       placeholder="Enter your email">
+                            </div>
+
+                            <!-- Password -->
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-200 mb-2">Password</label>
+                                <input v-model="loginForm.password" id="password" name="password" type="password" required
+                                       class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm"
+                                       placeholder="Enter your password">
+                            </div>
+                        </div>
+
+                    <!-- Error Message -->
+                    <div v-if="loginForm.error" class="text-red-400 text-sm text-center">
+                        {{ loginForm.error }}
+                    </div>
+
+                    <!-- Success Message -->
+                    <div v-if="loginForm.success" class="text-green-400 text-sm text-center">
+                        {{ loginForm.success }}
+                    </div>
+
+                        <!-- Submit Button -->
+                        <div>
+                            <button type="submit" :disabled="isLoading"
+                                    class="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 glow-effect">
+                                <span v-if="!isLoading">Sign In</span>
+                                <span v-else>Signing In...</span>
+                            </button>
+                        </div>
+
+                        <!-- Signup Link -->
+                        <div class="text-center">
+                            <span class="text-gray-300">Don't have an account?</span>
+                            <a href="signup-final.html" class="ml-1 text-blue-300 hover:text-blue-200 transition-colors duration-300 font-medium">
+                                Sign up here
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        // Supabase configuration
+        const SUPABASE_URL = 'https://cebrqzdpjksxozfqbetd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlYnJxemRwamtzeG96ZnFiZXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3OTIxMzcsImV4cCI6MjA3MzM2ODEzN30._kdp2jItLixL0LRiBjYYCIJvBYRg4VaF2ZgtwDfiEd0';
+
+        // Helper function to make Supabase requests
+        async function supabaseRequest(endpoint, options = {}) {
+            const url = `${SUPABASE_URL}${endpoint}`;
+            const headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation', // This ensures we get the created data back
+                ...options.headers
+            };
+            
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers
+                });
+                
+                if (response.status === 201) {
+                    // For POST requests, return the created data
+                    const data = await response.json();
+                    return { data: data, error: null };
+                }
+                
+                if (response.status === 204) {
+                    return { data: null, error: null };
+                }
+                
+                const data = await response.json();
+                return {
+                    data: response.ok ? data : null,
+                    error: response.ok ? null : { message: data.message || data.error_description || 'Request failed' }
+                };
+            } catch (error) {
+                return {
+                    data: null,
+                    error: { message: error.message }
+                };
+            }
+        }
+
+        createApp({
+            data() {
+                return {
+                    loginForm: {
+                        email: '',
+                        password: '',
+                        error: '',
+                        success: ''
+                    },
+                    isLoading: false
+                }
+            },
+            methods: {
+                async handleLogin() {
+                    // Clear previous messages
+                    this.loginForm.error = '';
+                    this.loginForm.success = '';
+                    
+                    // Basic validation
+                    if (!this.loginForm.email || !this.loginForm.password) {
+                        this.loginForm.error = 'Please fill in all fields.';
+                        return;
+                    }
+
+                    this.isLoading = true;
+
+                    try {
+                        // Try Supabase first
+                        console.log('Attempting Supabase login for:', this.loginForm.email);
+                        
+                        const { data, error } = await supabaseRequest(`/rest/v1/simple_users?email=eq.${encodeURIComponent(this.loginForm.email)}&select=*`);
+
+                        if (error) {
+                            console.warn('Supabase login failed, falling back to localStorage:', error);
+                            throw new Error('Supabase unavailable');
+                        }
+
+                        if (!data || data.length === 0) {
+                            this.loginForm.error = 'No account found with this email. Please sign up first.';
+                            return;
+                        }
+
+                        const user = data[0];
+                        
+                        // Store user data in localStorage for session management
+                        localStorage.setItem('user', JSON.stringify({
+                            id: user.id,
+                            email: user.email,
+                            firstName: user.first_name,
+                            lastName: user.last_name,
+                            name: `${user.first_name} ${user.last_name}`,
+                            role: user.role,
+                            loginTime: new Date().toISOString(),
+                            source: 'supabase'
+                        }));
+
+                        this.loginForm.success = 'Login successful! Redirecting...';
+                        
+                        // Redirect to dashboard after 1 second
+                        setTimeout(() => {
+                            window.location.href = 'dashboard-simple.html';
+                        }, 1000);
+                        
+                    } catch (supabaseError) {
+                        console.log('Supabase failed, using localStorage fallback');
+                        
+                        try {
+                            // Fallback to localStorage
+                            const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+                            const user = existingUsers.find(u => u.email === this.loginForm.email);
+
+                            if (!user) {
+                                this.loginForm.error = 'No account found with this email. Please sign up first.';
+                                return;
+                            }
+                            
+                            // Store user data in localStorage for session management
+                            localStorage.setItem('user', JSON.stringify({
+                                ...user,
+                                loginTime: new Date().toISOString(),
+                                source: 'localStorage'
+                            }));
+
+                            this.loginForm.success = 'Login successful! (Offline mode)';
+                            
+                            // Redirect to dashboard after 1 second
+                            setTimeout(() => {
+                                window.location.href = 'dashboard-simple.html';
+                            }, 1000);
+                            
+                        } catch (localStorageError) {
+                            this.loginForm.error = 'Login failed. Please try again.';
+                            console.error('Both Supabase and localStorage failed:', localStorageError);
+                        }
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

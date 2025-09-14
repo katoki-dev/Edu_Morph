@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test User Data - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">User Data Test</h1>
+        
+        <div class="bg-gray-800 p-6 rounded-lg mb-6">
+            <h2 class="text-xl font-semibold mb-4">LocalStorage User Data:</h2>
+            <pre id="userData" class="bg-gray-700 p-4 rounded text-sm overflow-auto"></pre>
+        </div>
+        
+        <div class="bg-gray-800 p-6 rounded-lg mb-6">
+            <h2 class="text-xl font-semibold mb-4">Parsed User Data:</h2>
+            <pre id="parsedData" class="bg-gray-700 p-4 rounded text-sm overflow-auto"></pre>
+        </div>
+        
+        <div class="bg-gray-800 p-6 rounded-lg">
+            <h2 class="text-xl font-semibold mb-4">Computed User Name:</h2>
+            <div id="userName" class="text-2xl font-bold text-blue-400"></div>
+        </div>
+    </div>
+
+    <script>
+        // Get user data from localStorage
+        const userData = localStorage.getItem('user');
+        document.getElementById('userData').textContent = userData || 'No user data found';
+        
+        if (userData) {
+            try {
+                const parsed = JSON.parse(userData);
+                document.getElementById('parsedData').textContent = JSON.stringify(parsed, null, 2);
+                
+                // Compute user name like in dashboard
+                let userName = 'User';
+                if (parsed) {
+                    if (parsed.name) {
+                        userName = parsed.name;
+                    } else if (parsed.firstName && parsed.lastName) {
+                        userName = `${parsed.firstName} ${parsed.lastName}`;
+                    } else if (parsed.firstName) {
+                        userName = parsed.firstName;
+                    } else if (parsed.email) {
+                        userName = parsed.email.split('@')[0];
+                    }
+                }
+                document.getElementById('userName').textContent = userName;
+            } catch (error) {
+                document.getElementById('parsedData').textContent = 'Error parsing user data: ' + error.message;
+            }
+        } else {
+            document.getElementById('parsedData').textContent = 'No user data to parse';
+        }
+    </script>
+</body>
+</html>

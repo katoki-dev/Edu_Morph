@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Resource Upload - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Resource Upload Database Test</h1>
+        
+        <div class="bg-gray-800 p-6 rounded-lg mb-6">
+            <h2 class="text-xl font-semibold mb-4">Database Connection Test</h2>
+            <button onclick="testDatabaseConnection()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Test Database Connection
+            </button>
+            <div id="connectionResult" class="mt-4 p-4 rounded hidden"></div>
+        </div>
+        
+        <div class="bg-gray-800 p-6 rounded-lg mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test Resource Upload</h2>
+            <input type="file" id="testFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif" class="mb-4">
+            <button onclick="testFileUpload()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                Test Upload
+            </button>
+            <div id="uploadResult" class="mt-4 p-4 rounded hidden"></div>
+        </div>
+        
+        <div class="bg-gray-800 p-6 rounded-lg">
+            <h2 class="text-xl font-semibold mb-4">Instructions</h2>
+            <div class="text-sm space-y-2">
+                <p>1. If database connection fails, you need to create the tables in Supabase</p>
+                <p>2. Go to your Supabase dashboard → SQL Editor</p>
+                <p>3. Copy and paste the SQL from <code class="bg-gray-700 px-2 py-1 rounded">create-tables.sql</code></p>
+                <p>4. Run the SQL to create all required tables</p>
+                <p>5. Test the upload again</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cebrqzdpjksxozfqbetd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlYnJxemRwamtzeG96ZnFiZXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3OTIxMzcsImV4cCI6MjA3MzM2ODEzN30._kdp2jItLixL0LRiBjYYCIJvBYRg4VaF2ZgtwDfiEd0';
+
+        async function testDatabaseConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = 'Testing database connection...';
+            
+            try {
+                // Test if resources table exists
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/resources?limit=1`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    resultDiv.className = 'mt-4 p-4 rounded bg-green-900 text-green-200';
+                    resultDiv.innerHTML = '✅ Database connection successful! Resources table exists.';
+                } else if (response.status === 404) {
+                    resultDiv.className = 'mt-4 p-4 rounded bg-red-900 text-red-200';
+                    resultDiv.innerHTML = '❌ Resources table not found. Please create the tables using the SQL file.';
+                } else {
+                    resultDiv.className = 'mt-4 p-4 rounded bg-yellow-900 text-yellow-200';
+                    resultDiv.innerHTML = `⚠️ Database error: ${response.status} - ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'mt-4 p-4 rounded bg-red-900 text-red-200';
+                resultDiv.innerHTML = `❌ Connection failed: ${error.message}`;
+            }
+        }
+
+        async function testFileUpload() {
+            const fileInput = document.getElementById('testFile');
+            const resultDiv = document.getElementById('uploadResult');
+            
+            if (!fileInput.files[0]) {
+                alert('Please select a file first!');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = 'Uploading file...';
+            
+            try {
+                // Convert file to base64
+                const base64File = await fileToBase64(file);
+                
+                const fileData = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    file_type: getFileType(file.type),
+                    content: base64File,
+                    uploaded_by: 'test-user',
+                    uploaded_by_name: 'Test User',
+                    uploaded_at: new Date().toISOString(),
+                    is_public: true
+                };
+                
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/resources`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify(fileData)
+                });
+                
+                if (response.ok) {
+                    resultDiv.className = 'mt-4 p-4 rounded bg-green-900 text-green-200';
+                    resultDiv.innerHTML = '✅ File uploaded successfully to database!';
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.className = 'mt-4 p-4 rounded bg-red-900 text-red-200';
+                    resultDiv.innerHTML = `❌ Upload failed: ${response.status} - ${errorText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'mt-4 p-4 rounded bg-red-900 text-red-200';
+                resultDiv.innerHTML = `❌ Upload error: ${error.message}`;
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function getFileType(mimeType) {
+            const typeMap = {
+                'application/pdf': 'PDF',
+                'application/msword': 'DOC',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+                'application/vnd.ms-powerpoint': 'PPT',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PPTX',
+                'image/jpeg': 'IMAGE',
+                'image/jpg': 'IMAGE',
+                'image/png': 'IMAGE',
+                'image/gif': 'IMAGE'
+            };
+            return typeMap[mimeType] || 'FILE';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto p-6">
+        <div class="bg-gray-800 p-6 rounded-lg">
+            <h1 class="text-2xl font-bold text-white mb-4">Test Login</h1>
+            <p class="text-gray-300 mb-4">This page will simulate a login and redirect to the dashboard.</p>
+            
+            <div class="space-y-4">
+                <button onclick="testStudentLogin()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Login as Student
+                </button>
+                <button onclick="testEducatorLogin()" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                    Login as Educator
+                </button>
+                <button onclick="clearLogin()" class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                    Clear Login Data
+                </button>
+            </div>
+            
+            <div class="mt-4 p-4 bg-gray-700 rounded">
+                <h3 class="font-bold mb-2">Current Login Status:</h3>
+                <pre id="loginStatus" class="text-sm text-gray-300"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus() {
+            const userData = localStorage.getItem('user');
+            document.getElementById('loginStatus').textContent = userData ? JSON.stringify(JSON.parse(userData), null, 2) : 'Not logged in';
+        }
+
+        function testStudentLogin() {
+            const userData = {
+                id: "62a3977a-d4d5-45bb-8958-5029a226279f",
+                email: "abhilash1@gmail.com",
+                firstName: "Abhi",
+                lastName: "lash",
+                name: "Abhi lash",
+                role: "student",
+                loginTime: new Date().toISOString()
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            updateStatus();
+            alert('Logged in as student! Redirecting to dashboard...');
+            window.location.href = 'dashboard-simple.html';
+        }
+
+        function testEducatorLogin() {
+            const userData = {
+                id: "2d889849-a4f0-412a-af44-6c911261f6c8",
+                email: "abhi1@gmail.com",
+                firstName: "Abhi",
+                lastName: "lash",
+                name: "Abhi lash",
+                role: "educator",
+                loginTime: new Date().toISOString()
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            updateStatus();
+            alert('Logged in as educator! Redirecting to dashboard...');
+            window.location.href = 'dashboard-simple.html';
+        }
+
+        function clearLogin() {
+            localStorage.removeItem('user');
+            updateStatus();
+            alert('Login data cleared!');
+        }
+
+        // Update status on page load
+        updateStatus();
+    </script>
+</body>
+</html>

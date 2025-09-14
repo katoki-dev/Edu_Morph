@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Test - Edu-Morph</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-8 text-blue-400">Database Connection Test</h1>
+            
+            <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Testing Database Tables</h2>
+                <button onclick="testTables()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md mb-4">
+                    Test All Tables
+                </button>
+                <div id="results" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cebrqzdpjksxozfqbetd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlYnJxemRwamtzeG96ZnFiZXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3OTIxMzcsImV4cCI6MjA3MzM2ODEzN30._kdp2jItLixL0LRiBjYYCIJvBYRg4VaF2ZgtwDfiEd0';
+
+        async function testTables() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="text-yellow-400">Testing tables...</div>';
+
+            const tables = ['resources', 'tests', 'students', 'courses'];
+            const results = [];
+
+            for (const table of tables) {
+                try {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?limit=1`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        results.push(`✅ ${table} - Table exists and accessible`);
+                    } else {
+                        results.push(`❌ ${table} - Error: ${response.status} ${response.statusText}`);
+                    }
+                } catch (error) {
+                    results.push(`❌ ${table} - Error: ${error.message}`);
+                }
+            }
+
+            resultsDiv.innerHTML = results.map(result => 
+                `<div class="mb-2 p-2 rounded ${result.includes('✅') ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}">${result}</div>`
+            ).join('');
+        }
+    </script>
+</body>
+</html>

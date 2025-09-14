@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chatbot - Edu-Morph</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-8 text-blue-400">Test AI Chatbot</h1>
+            
+            <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Chatbot Response Test</h2>
+                <p class="text-gray-300 mb-4">Test different inputs to see if the chatbot responds appropriately.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Test Input:</label>
+                        <input type="text" id="testInput" placeholder="Type your message here..." 
+                               class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-blue-500">
+                    </div>
+                    <button onclick="testResponse()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                        Test Response
+                    </button>
+                    <div id="response" class="bg-gray-700 p-4 rounded-md min-h-[100px]"></div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Quick Tests</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <button onclick="testInput('hello')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm">
+                        Test: "hello"
+                    </button>
+                    <button onclick="testInput('good morning messages')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm">
+                        Test: "good morning messages"
+                    </button>
+                    <button onclick="testInput('calculus help')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm">
+                        Test: "calculus help"
+                    </button>
+                    <button onclick="testInput('physics newton')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm">
+                        Test: "physics newton"
+                    </button>
+                    <button onclick="testInput('study tips')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm">
+                        Test: "study tips"
+                    </button>
+                    <button onclick="testInput('random question')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm">
+                        Test: "random question"
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Copy the generateAIResponse function from the dashboard
+        function generateAIResponse(input) {
+            const lowerInput = input.toLowerCase();
+            
+            // Greeting responses
+            if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
+                return "Hello! I'm your AI study assistant. How can I help you with your engineering studies today?";
+            }
+            
+            // Good morning messages
+            if (lowerInput.includes('good morning') || lowerInput.includes('morning message')) {
+                return "Good morning! Here are some motivational messages for your studies:\n\n• 'Every expert was once a beginner. Every pro was once an amateur.'\n• 'The future belongs to those who believe in the beauty of their dreams.'\n• 'Success is not final, failure is not fatal: it is the courage to continue that counts.'\n\nHave a great day of learning! 🌅";
+            }
+            
+            // Math/Calculus help
+            if (lowerInput.includes('calculus') || lowerInput.includes('derivative') || lowerInput.includes('integral')) {
+                return "I'd be happy to help with calculus! Here are some key concepts:\n\n• Derivatives: Rate of change\n• Integrals: Area under curves\n• Chain rule: d/dx[f(g(x))] = f'(g(x)) × g'(x)\n• Product rule: d/dx[f(x)g(x)] = f'(x)g(x) + f(x)g'(x)\n\nWhat specific calculus problem are you working on?";
+            }
+            
+            // Physics/Mechanics help
+            if (lowerInput.includes('physics') || lowerInput.includes('mechanics') || lowerInput.includes('force') || lowerInput.includes('newton')) {
+                return "Physics and mechanics are fascinating! Here are some fundamental concepts:\n\n• Newton's Laws: F = ma, action-reaction, inertia\n• Energy: KE = ½mv², PE = mgh\n• Momentum: p = mv\n• Work: W = Fd cos(θ)\n\nWhat specific physics concept would you like to explore?";
+            }
+            
+            // Engineering help
+            if (lowerInput.includes('engineering') || lowerInput.includes('design') || lowerInput.includes('circuit')) {
+                return "Engineering is all about solving real-world problems! Here are some key areas:\n\n• Mechanical: Forces, motion, materials\n• Electrical: Circuits, power, electronics\n• Civil: Structures, infrastructure\n• Chemical: Processes, reactions\n\nWhich engineering discipline interests you most?";
+            }
+            
+            // Study tips
+            if (lowerInput.includes('study') || lowerInput.includes('learn') || lowerInput.includes('exam')) {
+                return "Great question about studying! Here are some effective study strategies:\n\n• Active recall: Test yourself regularly\n• Spaced repetition: Review material over time\n• Practice problems: Solve many examples\n• Study groups: Learn with peers\n• Break it down: Tackle complex topics in parts\n\nWhat subject are you studying for?";
+            }
+            
+            // General help
+            if (lowerInput.includes('help') || lowerInput.includes('confused') || lowerInput.includes('stuck')) {
+                return "I'm here to help! I can assist with:\n\n• Engineering concepts and formulas\n• Study strategies and tips\n• Problem-solving approaches\n• Academic motivation\n• Course material explanations\n\nWhat specific topic would you like help with?";
+            }
+            
+            // Default responses for other queries
+            const defaultResponses = [
+                "That's an interesting question! I'm here to help with your engineering studies. Could you be more specific about what you'd like to learn?",
+                "I'd be happy to help! I specialize in engineering and academic topics. What subject are you working on?",
+                "Great question! I can help with engineering concepts, study tips, and academic guidance. What would you like to explore?",
+                "I'm your AI study assistant! I can help with engineering topics, math problems, physics concepts, and study strategies. What do you need help with?",
+                "That's a good question! I'm designed to help with engineering and academic studies. Could you tell me more about what you're working on?"
+            ];
+            
+            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+        }
+        
+        function testResponse() {
+            const input = document.getElementById('testInput').value;
+            if (!input.trim()) {
+                alert('Please enter a test message!');
+                return;
+            }
+            
+            const response = generateAIResponse(input);
+            document.getElementById('response').innerHTML = `
+                <div class="mb-2">
+                    <strong>Input:</strong> "${input}"
+                </div>
+                <div>
+                    <strong>Response:</strong><br>
+                    <div class="mt-2 p-3 bg-gray-600 rounded">${response.replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+        }
+        
+        function testInput(input) {
+            document.getElementById('testInput').value = input;
+            testResponse();
+        }
+    </script>
+</body>
+</html>

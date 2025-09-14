@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Document AI Generator - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="ai-service.js"></script>
+    <script src="document-service.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .test-card {
+            transition: all 0.3s ease;
+        }
+        
+        .test-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app">
+        <!-- Header -->
+        <div class="gradient-bg text-white py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <h1 class="text-4xl font-bold mb-4">Document AI Generator Test</h1>
+                <p class="text-xl opacity-90">Test the document-based AI content generation system</p>
+            </div>
+        </div>
+
+        <!-- Test Content -->
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <!-- Sample Document -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Sample Document</h2>
+                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                    <h3 class="font-semibold text-gray-700 mb-2">Physics: Newton's Laws of Motion</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Newton's laws of motion are three fundamental principles that describe the relationship between the motion of an object and the forces acting on it. These laws were formulated by Sir Isaac Newton in his work "Philosophiæ Naturalis Principia Mathematica" in 1687.
+
+                        <strong>First Law (Law of Inertia):</strong> An object at rest stays at rest, and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force. This law describes the tendency of objects to resist changes in their state of motion.
+
+                        <strong>Second Law (F = ma):</strong> The acceleration of an object is directly proportional to the net force acting on it and inversely proportional to its mass. Mathematically, this is expressed as F = ma, where F is the net force, m is the mass, and a is the acceleration.
+
+                        <strong>Third Law (Action-Reaction):</strong> For every action, there is an equal and opposite reaction. This means that when one object exerts a force on a second object, the second object exerts an equal and opposite force on the first object.
+
+                        These laws form the foundation of classical mechanics and are essential for understanding the motion of objects in our everyday world and in space. They apply to everything from the motion of planets around the sun to the movement of a ball rolling on the ground.
+                    </p>
+                </div>
+                
+                <button 
+                    @click="loadSampleDocument"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                >
+                    Load Sample Document
+                </button>
+            </div>
+
+            <!-- AI Generation Test -->
+            <div v-if="documentText" class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">AI Content Generation Test</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
+                        <select v-model="testOptions.contentType" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="lesson-notes">Lesson Notes</option>
+                            <option value="quiz">Quiz Questions</option>
+                            <option value="flashcards">Flashcards</option>
+                            <option value="summary">Summary</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+                        <select v-model="testOptions.difficulty" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button 
+                    @click="testAIGeneration"
+                    :disabled="isGenerating"
+                    class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                >
+                    <span v-if="!isGenerating">🤖 Generate Content</span>
+                    <span v-else>⏳ Generating...</span>
+                </button>
+            </div>
+
+            <!-- Generated Content Display -->
+            <div v-if="generatedContent.length > 0" class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Generated Content</h2>
+                
+                <div class="space-y-4">
+                    <div 
+                        v-for="(item, index) in generatedContent" 
+                        :key="index"
+                        class="test-card bg-gray-50 rounded-lg p-4"
+                    >
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">{{ item.title }}</h3>
+                        <div class="text-gray-600 whitespace-pre-line">{{ item.content }}</div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex space-x-4">
+                    <button 
+                        @click="downloadTestContent"
+                        class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                    >
+                        📥 Download
+                    </button>
+                    <button 
+                        @click="clearContent"
+                        class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                    >
+                        🗑️ Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Test Results -->
+            <div v-if="testResults" class="bg-white rounded-lg shadow-lg p-6 mt-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Test Results</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-blue-800">Processing Time</h3>
+                        <p class="text-2xl font-bold text-blue-600">{{ testResults.processingTime }}ms</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-green-800">Content Items</h3>
+                        <p class="text-2xl font-bold text-green-600">{{ testResults.contentCount }}</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-purple-800">Success Rate</h3>
+                        <p class="text-2xl font-bold text-purple-600">{{ testResults.successRate }}%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature Tests -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mt-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Feature Tests</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <button 
+                        @click="testDocumentProcessing"
+                        class="test-card bg-blue-50 p-4 rounded-lg text-left hover:bg-blue-100"
+                    >
+                        <div class="text-2xl mb-2">📄</div>
+                        <h3 class="font-semibold text-blue-800">Document Processing</h3>
+                        <p class="text-sm text-blue-600">Test text extraction and processing</p>
+                    </button>
+                    
+                    <button 
+                        @click="testAIContentGeneration"
+                        class="test-card bg-green-50 p-4 rounded-lg text-left hover:bg-green-100"
+                    >
+                        <div class="text-2xl mb-2">🤖</div>
+                        <h3 class="font-semibold text-green-800">AI Content Generation</h3>
+                        <p class="text-sm text-green-600">Test AI-powered content creation</p>
+                    </button>
+                    
+                    <button 
+                        @click="testQuestionGeneration"
+                        class="test-card bg-purple-50 p-4 rounded-lg text-left hover:bg-purple-100"
+                    >
+                        <div class="text-2xl mb-2">❓</div>
+                        <h3 class="font-semibold text-purple-800">Question Generation</h3>
+                        <p class="text-sm text-purple-600">Test quiz question creation</p>
+                    </button>
+                    
+                    <button 
+                        @click="testFileValidation"
+                        class="test-card bg-yellow-50 p-4 rounded-lg text-left hover:bg-yellow-100"
+                    >
+                        <div class="text-2xl mb-2">✅</div>
+                        <h3 class="font-semibold text-yellow-800">File Validation</h3>
+                        <p class="text-sm text-yellow-600">Test file format validation</p>
+                    </button>
+                    
+                    <button 
+                        @click="testContentParsing"
+                        class="test-card bg-red-50 p-4 rounded-lg text-left hover:bg-red-100"
+                    >
+                        <div class="text-2xl mb-2">🔍</div>
+                        <h3 class="font-semibold text-red-800">Content Parsing</h3>
+                        <p class="text-sm text-red-600">Test content parsing and formatting</p>
+                    </button>
+                    
+                    <button 
+                        @click="runAllTests"
+                        class="test-card bg-gray-50 p-4 rounded-lg text-left hover:bg-gray-100"
+                    >
+                        <div class="text-2xl mb-2">🚀</div>
+                        <h3 class="font-semibold text-gray-800">Run All Tests</h3>
+                        <p class="text-sm text-gray-600">Execute complete test suite</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Test Log -->
+            <div v-if="testLog.length > 0" class="bg-white rounded-lg shadow-lg p-6 mt-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Test Log</h2>
+                <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-64 overflow-y-auto">
+                    <div v-for="(log, index) in testLog" :key="index" class="mb-1">
+                        [{{ log.timestamp }}] {{ log.message }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    documentText: '',
+                    generatedContent: [],
+                    isGenerating: false,
+                    testOptions: {
+                        contentType: 'lesson-notes',
+                        difficulty: 'intermediate',
+                        count: 3
+                    },
+                    testResults: null,
+                    testLog: [],
+                    
+                    // Services
+                    documentService: null,
+                    aiService: null
+                }
+            },
+            methods: {
+                loadSampleDocument() {
+                    this.documentText = `Physics: Newton's Laws of Motion
+
+Newton's laws of motion are three fundamental principles that describe the relationship between the motion of an object and the forces acting on it. These laws were formulated by Sir Isaac Newton in his work "Philosophiæ Naturalis Principia Mathematica" in 1687.
+
+First Law (Law of Inertia): An object at rest stays at rest, and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force. This law describes the tendency of objects to resist changes in their state of motion.
+
+Second Law (F = ma): The acceleration of an object is directly proportional to the net force acting on it and inversely proportional to its mass. Mathematically, this is expressed as F = ma, where F is the net force, m is the mass, and a is the acceleration.
+
+Third Law (Action-Reaction): For every action, there is an equal and opposite reaction. This means that when one object exerts a force on a second object, the second object exerts an equal and opposite force on the first object.
+
+These laws form the foundation of classical mechanics and are essential for understanding the motion of objects in our everyday world and in space. They apply to everything from the motion of planets around the sun to the movement of a ball rolling on the ground.`;
+                    
+                    this.addLog('Sample document loaded successfully');
+                },
+                
+                async testAIGeneration() {
+                    if (!this.documentText) {
+                        alert('Please load a sample document first.');
+                        return;
+                    }
+                    
+                    this.isGenerating = true;
+                    this.generatedContent = [];
+                    const startTime = Date.now();
+                    
+                    try {
+                        const content = await this.aiService.generateContentFromDocument(
+                            this.documentText,
+                            this.testOptions
+                        );
+                        
+                        const processingTime = Date.now() - startTime;
+                        
+                        this.generatedContent = content;
+                        this.testResults = {
+                            processingTime: processingTime,
+                            contentCount: content.length,
+                            successRate: content.length > 0 ? 100 : 0
+                        };
+                        
+                        this.addLog(`AI generation completed in ${processingTime}ms, generated ${content.length} items`);
+                        
+                    } catch (error) {
+                        console.error('Error in AI generation test:', error);
+                        this.addLog(`AI generation failed: ${error.message}`);
+                    } finally {
+                        this.isGenerating = false;
+                    }
+                },
+                
+                async testDocumentProcessing() {
+                    this.addLog('Testing document processing...');
+                    
+                    try {
+                        const processed = this.documentService.processDocument(this.documentText);
+                        this.addLog(`Document processed: ${processed.wordCount} words, ${processed.characterCount} characters`);
+                        this.addLog(`Key points extracted: ${processed.keyPoints.length}`);
+                    } catch (error) {
+                        this.addLog(`Document processing failed: ${error.message}`);
+                    }
+                },
+                
+                async testAIContentGeneration() {
+                    this.addLog('Testing AI content generation...');
+                    
+                    try {
+                        const content = await this.aiService.generateContentFromDocument(
+                            this.documentText,
+                            { contentType: 'lesson-notes', difficulty: 'intermediate', count: 2 }
+                        );
+                        this.addLog(`AI content generation successful: ${content.length} items generated`);
+                    } catch (error) {
+                        this.addLog(`AI content generation failed: ${error.message}`);
+                    }
+                },
+                
+                async testQuestionGeneration() {
+                    this.addLog('Testing question generation...');
+                    
+                    try {
+                        const questions = await this.aiService.generateTestQuestionsFromDocument(
+                            this.documentText,
+                            { difficulty: 'intermediate', count: 3 }
+                        );
+                        this.addLog(`Question generation successful: ${questions.length} questions generated`);
+                    } catch (error) {
+                        this.addLog(`Question generation failed: ${error.message}`);
+                    }
+                },
+                
+                testFileValidation() {
+                    this.addLog('Testing file validation...');
+                    
+                    const testFiles = [
+                        { name: 'test.pdf', size: 5 * 1024 * 1024, type: 'application/pdf' },
+                        { name: 'test.docx', size: 2 * 1024 * 1024, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+                        { name: 'test.txt', size: 1024, type: 'text/plain' },
+                        { name: 'test.jpg', size: 1024, type: 'image/jpeg' },
+                        { name: 'large.pdf', size: 15 * 1024 * 1024, type: 'application/pdf' }
+                    ];
+                    
+                    testFiles.forEach(file => {
+                        const validation = this.documentService.validateFile(file);
+                        this.addLog(`File ${file.name}: ${validation.isValid ? 'Valid' : 'Invalid'} - ${validation.errors.join(', ') || 'No errors'}`);
+                    });
+                },
+                
+                testContentParsing() {
+                    this.addLog('Testing content parsing...');
+                    
+                    try {
+                        const sampleContent = `## Lesson Note 1: Newton's First Law
+### Key Concepts
+- Inertia
+- Unbalanced forces
+### Explanation
+This law describes the tendency of objects to resist changes in their state of motion.`;
+                        
+                        const parsed = this.aiService.parseDocumentContent(sampleContent, 'lesson-notes');
+                        this.addLog(`Content parsing successful: ${parsed.length} items parsed`);
+                    } catch (error) {
+                        this.addLog(`Content parsing failed: ${error.message}`);
+                    }
+                },
+                
+                async runAllTests() {
+                    this.addLog('Starting complete test suite...');
+                    this.testLog = [];
+                    
+                    await this.testDocumentProcessing();
+                    await this.testAIContentGeneration();
+                    await this.testQuestionGeneration();
+                    this.testFileValidation();
+                    this.testContentParsing();
+                    
+                    this.addLog('All tests completed!');
+                },
+                
+                downloadTestContent() {
+                    if (this.generatedContent.length === 0) {
+                        alert('No content to download!');
+                        return;
+                    }
+                    
+                    let content = `# Test Generated Content\n\n`;
+                    content += `Generated on: ${new Date().toLocaleDateString()}\n`;
+                    content += `Content Type: ${this.testOptions.contentType}\n`;
+                    content += `Difficulty: ${this.testOptions.difficulty}\n\n`;
+                    content += '---\n\n';
+                    
+                    this.generatedContent.forEach((item, index) => {
+                        content += `## ${item.title}\n\n${item.content}\n\n---\n\n`;
+                    });
+                    
+                    const blob = new Blob([content], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `test_content_${new Date().toISOString().split('T')[0]}.md`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                
+                clearContent() {
+                    this.generatedContent = [];
+                    this.testResults = null;
+                    this.addLog('Content cleared');
+                },
+                
+                addLog(message) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    this.testLog.push({
+                        timestamp: timestamp,
+                        message: message
+                    });
+                }
+            },
+            mounted() {
+                // Initialize services
+                this.documentService = new DocumentService();
+                this.aiService = new AIService();
+                
+                this.addLog('Test page initialized');
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

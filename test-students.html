@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Student Management - Edu-Morph</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-8 text-blue-400">Test Student Management</h1>
+            
+            <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Test localStorage Functionality</h2>
+                <p class="text-gray-300 mb-4">This page tests if student data persists in localStorage after refresh.</p>
+                
+                <div class="space-y-4">
+                    <button onclick="addTestStudent()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                        Add Test Student
+                    </button>
+                    <button onclick="loadStudents()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
+                        Load Students from localStorage
+                    </button>
+                    <button onclick="clearStudents()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+                        Clear All Students
+                    </button>
+                </div>
+                
+                <div id="studentList" class="mt-6">
+                    <h3 class="text-lg font-medium mb-3">Students in localStorage:</h3>
+                    <div id="students"></div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Instructions</h2>
+                <ol class="list-decimal list-inside space-y-2 text-gray-300">
+                    <li>Click "Add Test Student" to add a sample student</li>
+                    <li>Click "Load Students from localStorage" to see stored students</li>
+                    <li>Refresh the page and click "Load Students" again - data should persist!</li>
+                    <li>Go to the dashboard and add students there - they should persist after refresh</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const testUserId = 'test_user_123';
+        
+        function addTestStudent() {
+            const testStudent = {
+                id: Date.now(),
+                name: `Test Student ${Math.floor(Math.random() * 1000)}`,
+                email: `test${Math.floor(Math.random() * 1000)}@example.com`,
+                progress: Math.floor(Math.random() * 40) + 30,
+                lastActive: 'Just now'
+            };
+            
+            const studentsKey = `students_${testUserId}`;
+            let students = JSON.parse(localStorage.getItem(studentsKey) || '[]');
+            students.push(testStudent);
+            localStorage.setItem(studentsKey, JSON.stringify(students));
+            
+            alert(`Test student added: ${testStudent.name}`);
+            loadStudents();
+        }
+        
+        function loadStudents() {
+            const studentsKey = `students_${testUserId}`;
+            const students = JSON.parse(localStorage.getItem(studentsKey) || '[]');
+            
+            const studentsDiv = document.getElementById('students');
+            if (students.length === 0) {
+                studentsDiv.innerHTML = '<p class="text-gray-400">No students found in localStorage</p>';
+            } else {
+                studentsDiv.innerHTML = students.map(student => `
+                    <div class="bg-gray-700 p-3 rounded mb-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="font-medium">${student.name}</h4>
+                                <p class="text-sm text-gray-400">${student.email}</p>
+                                <p class="text-sm text-gray-400">Progress: ${student.progress}%</p>
+                            </div>
+                            <button onclick="deleteStudent(${student.id})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function deleteStudent(studentId) {
+            const studentsKey = `students_${testUserId}`;
+            let students = JSON.parse(localStorage.getItem(studentsKey) || '[]');
+            students = students.filter(s => s.id !== studentId);
+            localStorage.setItem(studentsKey, JSON.stringify(students));
+            loadStudents();
+        }
+        
+        function clearStudents() {
+            const studentsKey = `students_${testUserId}`;
+            localStorage.removeItem(studentsKey);
+            loadStudents();
+            alert('All students cleared from localStorage');
+        }
+        
+        // Load students on page load
+        loadStudents();
+    </script>
+</body>
+</html>

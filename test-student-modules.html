@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Student Modules - Edu-Morph</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-8 text-blue-400">Test Student Modules</h1>
+            
+            <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Student Module Test</h2>
+                <p class="text-gray-300 mb-4">This page tests if all student modules are working correctly.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="testFlashCards()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md">
+                        Test Flash Cards
+                    </button>
+                    <button onclick="testTestPage()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+                        Test Test Page
+                    </button>
+                    <button onclick="testResultPage()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
+                        Test Result Page
+                    </button>
+                    <button onclick="testChatbot()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md">
+                        Test AI Chatbot
+                    </button>
+                </div>
+                
+                <div id="testResults" class="mt-6"></div>
+            </div>
+            
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Instructions</h2>
+                <ol class="list-decimal list-inside space-y-2 text-gray-300">
+                    <li>Go to the dashboard: <a href="http://127.0.0.1:9999/dashboard-simple.html" class="text-blue-400 hover:underline">http://127.0.0.1:9999/dashboard-simple.html</a></li>
+                    <li>Login as a student (use test-login.html if needed)</li>
+                    <li>Click on each student module to test functionality</li>
+                    <li>Try the test code "CALC01" or "MECH02" for testing</li>
+                    <li>All modules should open modals with proper functionality</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testFlashCards() {
+            const result = document.getElementById('testResults');
+            result.innerHTML = '<div class="text-green-400">✅ Flash Cards: Modal should open with sample engineering questions and answers</div>';
+        }
+        
+        function testTestPage() {
+            const result = document.getElementById('testResults');
+            result.innerHTML = '<div class="text-green-400">✅ Test Page: Enter test code "CALC01" or "MECH02" to test the test interface</div>';
+        }
+        
+        function testResultPage() {
+            const result = document.getElementById('testResults');
+            result.innerHTML = '<div class="text-green-400">✅ Result Page: Complete a test first, then view results here</div>';
+        }
+        
+        function testChatbot() {
+            const result = document.getElementById('testResults');
+            result.innerHTML = '<div class="text-green-400">✅ AI Chatbot: Modal should open with chat interface and AI responses</div>';
+        }
+    </script>
+</body>
+</html>

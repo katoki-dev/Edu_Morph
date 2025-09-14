@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document AI Generator - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="ai-service.js"></script>
+    <script src="document-service.js"></script>
+    <script src="firebase-service.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="navigation.js"></script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #9333EA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+        }
+        
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="100" fill="url(%23a)"/><circle cx="800" cy="300" r="150" fill="url(%23a)"/><circle cx="400" cy="700" r="120" fill="url(%23a)"/></svg>') no-repeat center center;
+            background-size: cover;
+        }
+        
+        /* Clean Upload Area */
+        .upload-zone {
+            border: 2px dashed #e2e8f0;
+            border-radius: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fafbfc;
+        }
+        
+        .upload-zone:hover {
+            border-color: #3b82f6;
+            background: #f8faff;
+            transform: translateY(-1px);
+        }
+        
+        .upload-zone.dragover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+        
+        /* Clean Cards */
+        .clean-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .clean-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Content Cards */
+        .content-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .content-item:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-secondary:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        
+        /* Loading States */
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        /* Typography */
+        .text-display {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.025em;
+        }
+        
+        .text-heading {
+            font-size: 1.875rem;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+        }
+        
+        .text-subheading {
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        
+        /* Form Elements */
+        .form-input {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fafbfc;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-select {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fafbfc;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Radio Cards */
+        .radio-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fafbfc;
+        }
+        
+        .radio-card:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+        
+        .radio-card.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Notifications */
+        .notification {
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app">
+        <!-- Navigation -->
+        <div id="navigation-container"></div>
+
+        <!-- Notifications -->
+        <div class="fixed top-6 right-6 z-50 space-y-3">
+            <div 
+                v-for="notification in notifications" 
+                :key="notification.id"
+                class="notification max-w-sm bg-white p-4 transform transition-all duration-300 fade-in"
+                :class="{
+                    'border-l-4 border-green-500': notification.type === 'success',
+                    'border-l-4 border-red-500': notification.type === 'error',
+                    'border-l-4 border-yellow-500': notification.type === 'warning',
+                    'border-l-4 border-blue-500': notification.type === 'info'
+                }"
+            >
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <span v-if="notification.type === 'success'" class="text-green-500 text-lg">✅</span>
+                        <span v-else-if="notification.type === 'error'" class="text-red-500 text-lg">❌</span>
+                        <span v-else-if="notification.type === 'warning'" class="text-yellow-500 text-lg">⚠️</span>
+                        <span v-else class="text-blue-500 text-lg">ℹ️</span>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-semibold text-gray-900">{{ notification.message }}</p>
+                    </div>
+                    <button 
+                        @click="removeNotification(notification.id)"
+                        class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <section class="hero-bg min-h-[500px] flex items-center justify-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-black/20 to-black/40"></div>
+            <div class="relative z-10 max-w-6xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+                <!-- Logo -->
+                <div class="flex items-center justify-center mb-8">
+                    <div class="w-24 h-24 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                        <img src="logo.png" alt="EDU-MORPH Logo" class="w-20 h-20 object-contain">
+                    </div>
+                </div>
+                
+                <!-- Main Heading -->
+                <h1 class="text-display text-white mb-6 drop-shadow-2xl">
+                    Document AI Generator
+                </h1>
+                
+                <!-- Subtitle -->
+                <p class="text-xl text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed drop-shadow-lg">
+                    Transform your documents into comprehensive educational content with the power of AI
+                </p>
+                
+                <!-- Feature Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">📄</span>
+                        </div>
+                        <h3 class="text-white font-semibold text-lg mb-2">Multiple Formats</h3>
+                        <p class="text-white/80 text-sm">PDF, DOCX, TXT, MD</p>
+                    </div>
+                    
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">🤖</span>
+                        </div>
+                        <h3 class="text-white font-semibold text-lg mb-2">AI Powered</h3>
+                        <p class="text-white/80 text-sm">Smart content generation</p>
+                    </div>
+                    
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">⚡</span>
+                        </div>
+                        <h3 class="text-white font-semibold text-lg mb-2">Fast Processing</h3>
+                        <p class="text-white/80 text-sm">Optimized performance</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+
+            <!-- Document Upload Section -->
+            <div class="clean-card p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-heading gradient-text mb-3">Upload Document</h2>
+                    <p class="text-gray-600">Choose a document to transform into educational content</p>
+                </div>
+                
+                <!-- File Upload Area -->
+                <div 
+                    class="upload-zone p-12 text-center cursor-pointer"
+                    :class="{ 'dragover': isDragOver }"
+                    @click="triggerFileInput"
+                    @dragover.prevent="isDragOver = true"
+                    @dragleave.prevent="isDragOver = false"
+                    @drop.prevent="handleFileDrop"
+                >
+                    <input 
+                        ref="fileInput"
+                        type="file" 
+                        @change="handleFileSelect"
+                        accept=".pdf,.docx,.txt,.md"
+                        class="hidden"
+                    >
+                    
+                    <div v-if="!uploadedFile" class="space-y-6">
+                        <div class="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto">
+                            <span class="text-4xl">📄</span>
+                        </div>
+                        <div>
+                            <p class="text-xl font-semibold text-gray-800 mb-2">Drop your document here</p>
+                            <p class="text-gray-500 mb-4">or click to browse files</p>
+                            <div class="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium">
+                                Choose File
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-400">Supported: PDF, DOCX, TXT, MD • Max 10MB</p>
+                    </div>
+                    
+                    <div v-else class="space-y-6">
+                        <div class="w-20 h-20 bg-green-50 rounded-2xl flex items-center justify-center mx-auto">
+                            <span class="text-4xl text-green-500">✅</span>
+                        </div>
+                        <div>
+                            <p class="text-xl font-semibold text-gray-800 mb-1">{{ uploadedFile.name }}</p>
+                            <p class="text-gray-500 mb-4">{{ formatFileSize(uploadedFile.size) }}</p>
+                            <button 
+                                @click.stop="removeFile"
+                                class="btn-secondary px-6 py-2 text-red-600 hover:bg-red-50 hover:border-red-200"
+                            >
+                                Remove File
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Processing Status -->
+                <div v-if="isProcessing" class="mt-8 p-6 bg-blue-50 rounded-2xl border border-blue-200">
+                    <div class="flex items-center space-x-4">
+                        <div class="loading-spinner w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                        <div>
+                            <p class="font-semibold text-blue-800">Processing document...</p>
+                            <p class="text-sm text-blue-600">Please wait while we extract the content</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 progress-bar">
+                        <div class="progress-fill" style="width: 60%"></div>
+                    </div>
+                </div>
+
+                <!-- Document Preview -->
+                <div v-if="documentPreview" class="mt-8 p-6 bg-gray-50 rounded-2xl border border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-subheading text-gray-800">Document Preview</h3>
+                        <div class="text-sm text-gray-500">
+                            {{ documentStats.wordCount }} words • {{ documentStats.characterCount }} characters
+                        </div>
+                    </div>
+                    <div class="max-h-64 overflow-y-auto text-sm text-gray-600 leading-relaxed bg-white p-4 rounded-lg border">
+                        {{ documentPreview.substring(0, 500) }}{{ documentPreview.length > 500 ? '...' : '' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Generation Options -->
+            <div v-if="documentPreview" class="clean-card p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-heading gradient-text mb-3">Generate Content</h2>
+                    <p class="text-gray-600">Configure your AI generation settings</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Content Type Selection -->
+                    <div>
+                        <h3 class="text-subheading text-gray-800 mb-6">Content Type</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <label 
+                                v-for="type in contentTypes" 
+                                :key="type.value"
+                                class="radio-card"
+                                :class="{ 'selected': generationOptions.contentType === type.value }"
+                            >
+                                <input 
+                                    v-model="generationOptions.contentType"
+                                    type="radio" 
+                                    :value="type.value"
+                                    class="sr-only"
+                                >
+                                <div class="text-center">
+                                    <div class="text-3xl mb-3">{{ type.icon }}</div>
+                                    <div class="font-semibold text-gray-800 mb-1">{{ type.label }}</div>
+                                    <div class="text-sm text-gray-500">{{ type.description }}</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Generation Settings -->
+                    <div class="space-y-6">
+                        <h3 class="text-subheading text-gray-800 mb-6">Settings</h3>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Subject</label>
+                            <input 
+                                v-model="generationOptions.subject"
+                                type="text"
+                                class="form-input w-full"
+                                placeholder="e.g., Physics, Mathematics, Biology"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Difficulty Level</label>
+                            <select 
+                                v-model="generationOptions.difficulty"
+                                class="form-select w-full"
+                            >
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Number of Items</label>
+                            <input 
+                                v-model.number="generationOptions.count"
+                                type="number"
+                                min="1"
+                                max="20"
+                                class="form-input w-full"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="mt-10 text-center">
+                    <button 
+                        @click="generateContent"
+                        :disabled="isGenerating"
+                        class="btn-primary text-white px-12 py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <span v-if="!isGenerating" class="flex items-center justify-center space-x-3">
+                            <span>🤖</span>
+                            <span>Generate Content</span>
+                        </span>
+                        <span v-else class="flex items-center justify-center space-x-3">
+                            <div class="loading-spinner w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                            <span>Generating...</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Generated Content Display -->
+            <div v-if="generatedContent.length > 0" class="clean-card p-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+                    <div>
+                        <h2 class="text-heading gradient-text mb-2">Generated Content</h2>
+                        <p class="text-gray-600">{{ generatedContent.length }} items generated successfully</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3 mt-4 sm:mt-0">
+                        <button 
+                            @click="downloadContent"
+                            class="btn-secondary px-6 py-3 text-green-600 hover:bg-green-50 hover:border-green-200"
+                        >
+                            📥 Download All
+                        </button>
+                        <button 
+                            @click="saveContent"
+                            class="btn-primary px-6 py-3 text-white"
+                        >
+                            💾 Save to Library
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div 
+                        v-for="(item, index) in generatedContent" 
+                        :key="index"
+                        class="content-item p-6 fade-in"
+                    >
+                        <div class="flex items-start justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 pr-4">{{ item.title }}</h3>
+                            <button 
+                                @click="copyToClipboard(item.content)"
+                                class="btn-secondary px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 hover:border-blue-200 flex-shrink-0"
+                            >
+                                📋 Copy
+                            </button>
+                        </div>
+                        <div class="text-gray-600 whitespace-pre-line leading-relaxed text-sm">{{ item.content }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Documents -->
+            <div v-if="recentDocuments.length > 0" class="clean-card p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-heading gradient-text mb-3">Recent Documents</h2>
+                    <p class="text-gray-600">Quick access to your previously processed documents</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div 
+                        v-for="doc in recentDocuments" 
+                        :key="doc.id"
+                        class="content-item p-6 cursor-pointer hover:scale-105 transition-all duration-300"
+                        @click="loadDocument(doc)"
+                    >
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mr-4">
+                                <span class="text-2xl">{{ getFileIcon(doc.fileName) }}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-800 truncate">{{ doc.fileName }}</h3>
+                                <p class="text-sm text-gray-500">{{ formatDate(doc.createdAt) }}</p>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Click to process again
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    // File upload
+                    uploadedFile: null,
+                    isDragOver: false,
+                    isProcessing: false,
+                    
+                    // Document processing
+                    documentPreview: '',
+                    documentStats: {
+                        wordCount: 0,
+                        characterCount: 0
+                    },
+                    
+                // AI generation
+                generationOptions: {
+                    contentType: 'lesson-notes',
+                    subject: '',
+                    difficulty: 'intermediate',
+                    count: 5
+                },
+                generatedContent: [],
+                isGenerating: false,
+                
+                // Notifications
+                notifications: [],
+                    
+                    // Services
+                    documentService: null,
+                    aiService: null,
+                    firebaseService: null,
+                    
+                    // Recent documents
+                    recentDocuments: [],
+                    
+                    // Content types
+                    contentTypes: [
+                        {
+                            value: 'lesson-notes',
+                            label: 'Lesson Notes',
+                            description: 'Comprehensive study materials',
+                            icon: '📝'
+                        },
+                        {
+                            value: 'quiz',
+                            label: 'Quiz Questions',
+                            description: 'Multiple choice questions',
+                            icon: '❓'
+                        },
+                        {
+                            value: 'flashcards',
+                            label: 'Flashcards',
+                            description: 'Interactive learning cards',
+                            icon: '🃏'
+                        },
+                        {
+                            value: 'summary',
+                            label: 'Summary',
+                            description: 'Key points overview',
+                            icon: '📋'
+                        }
+                    ]
+                }
+            },
+            methods: {
+                initializeNavigation() {
+                    // Initialize navigation system
+                    if (window.navigation) {
+                        const navContainer = document.getElementById('navigation-container');
+                        if (navContainer) {
+                            navContainer.innerHTML = window.navigation.generateNavigationHTML();
+                            window.navigation.initialize();
+                        }
+                    }
+                },
+                
+                // File handling
+                triggerFileInput() {
+                    this.$refs.fileInput.click();
+                },
+                
+                handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.processFile(file);
+                    }
+                },
+                
+                handleFileDrop(event) {
+                    this.isDragOver = false;
+                    const file = event.dataTransfer.files[0];
+                    if (file) {
+                        this.processFile(file);
+                    }
+                },
+                
+                async processFile(file) {
+                    // Validate file
+                    const validation = this.documentService.validateFile(file);
+                    if (!validation.isValid) {
+                        this.showNotification(validation.errors.join('\n'), 'error');
+                        return;
+                    }
+                    
+                    this.uploadedFile = file;
+                    this.isProcessing = true;
+                    this.documentPreview = '';
+                    this.documentStats = { wordCount: 0, characterCount: 0 };
+                    
+                    try {
+                        // Show progress
+                        this.showNotification('Processing document...', 'info');
+                        
+                        // Extract text from document with progress tracking
+                        const text = await this.extractTextWithProgress(file);
+                        
+                        if (!text || text.trim().length === 0) {
+                            throw new Error('No text could be extracted from the document');
+                        }
+                        
+                        // Process document
+                        const processed = this.documentService.processDocument(text, {
+                            maxLength: 10000, // Limit for better performance
+                            preserveStructure: true,
+                            extractKeyPoints: true
+                        });
+                        
+                        this.documentPreview = processed.text;
+                        this.documentStats = {
+                            wordCount: processed.wordCount,
+                            characterCount: processed.characterCount
+                        };
+                        
+                        // Auto-fill subject if empty
+                        if (!this.generationOptions.subject) {
+                            this.generationOptions.subject = this.extractSubjectFromText(processed.text);
+                        }
+                        
+                        this.showNotification('Document processed successfully!', 'success');
+                        
+                    } catch (error) {
+                        console.error('Error processing file:', error);
+                        this.showNotification(`Error processing document: ${error.message}`, 'error');
+                        this.removeFile();
+                    } finally {
+                        this.isProcessing = false;
+                    }
+                },
+                
+                async extractTextWithProgress(file) {
+                    // Simulate progress for better UX
+                    const progressInterval = setInterval(() => {
+                        if (this.isProcessing) {
+                            // Update progress indicator
+                            console.log('Processing document...');
+                        }
+                    }, 500);
+                    
+                    try {
+                        const text = await this.documentService.extractText(file);
+                        clearInterval(progressInterval);
+                        return text;
+                    } catch (error) {
+                        clearInterval(progressInterval);
+                        throw error;
+                    }
+                },
+                
+                removeFile() {
+                    this.uploadedFile = null;
+                    this.documentPreview = '';
+                    this.documentStats = { wordCount: 0, characterCount: 0 };
+                    this.generatedContent = [];
+                },
+                
+                // AI content generation
+                async generateContent() {
+                    if (!this.documentPreview) {
+                        this.showNotification('Please upload and process a document first.', 'warning');
+                        return;
+                    }
+                    
+                    this.isGenerating = true;
+                    this.generatedContent = [];
+                    
+                    try {
+                        this.showNotification('Generating AI content...', 'info');
+                        
+                        const content = await this.aiService.generateContentFromDocument(
+                            this.documentPreview,
+                            this.generationOptions
+                        );
+                        
+                        if (content && content.length > 0) {
+                            this.generatedContent = content;
+                            this.showNotification(`Successfully generated ${content.length} content items!`, 'success');
+                            
+                            // Save to Firebase
+                            try {
+                                await this.saveGeneratedContentToFirebase(content);
+                            } catch (saveError) {
+                                console.warn('Failed to save to Firebase:', saveError);
+                                this.showNotification('Content generated but failed to save to library.', 'warning');
+                            }
+                        } else {
+                            this.showNotification('No content was generated. Please try with different settings.', 'warning');
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error generating content:', error);
+                        this.showNotification(`Error generating content: ${error.message}`, 'error');
+                    } finally {
+                        this.isGenerating = false;
+                    }
+                },
+                
+                // Utility methods
+                formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                },
+                
+                formatDate(timestamp) {
+                    if (!timestamp) return '';
+                    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                    return date.toLocaleDateString();
+                },
+                
+                getFileIcon(fileName) {
+                    const extension = fileName.split('.').pop().toLowerCase();
+                    const icons = {
+                        'pdf': '📄',
+                        'docx': '📝',
+                        'txt': '📄',
+                        'md': '📝'
+                    };
+                    return icons[extension] || '📄';
+                },
+                
+                extractSubjectFromText(text) {
+                    // Simple subject extraction - in production, use more sophisticated NLP
+                    const words = text.toLowerCase().split(' ');
+                    const subjects = ['physics', 'mathematics', 'biology', 'chemistry', 'history', 'geography', 'literature'];
+                    const foundSubject = subjects.find(subject => words.includes(subject));
+                    return foundSubject ? foundSubject.charAt(0).toUpperCase() + foundSubject.slice(1) : 'General';
+                },
+                
+                copyToClipboard(text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        alert('Content copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy content');
+                    });
+                },
+                
+                downloadContent() {
+                    if (this.generatedContent.length === 0) {
+                        alert('No content to download!');
+                        return;
+                    }
+                    
+                    let content = `# Generated ${this.generationOptions.contentType.replace('-', ' ').toUpperCase()}\n\n`;
+                    content += `Generated on: ${new Date().toLocaleDateString()}\n`;
+                    content += `Subject: ${this.generationOptions.subject}\n`;
+                    content += `Difficulty: ${this.generationOptions.difficulty}\n`;
+                    content += `Number of items: ${this.generationOptions.count}\n\n`;
+                    content += '---\n\n';
+                    
+                    this.generatedContent.forEach((item, index) => {
+                        content += `## ${item.title}\n\n${item.content}\n\n---\n\n`;
+                    });
+                    
+                    const blob = new Blob([content], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${this.generationOptions.subject}_${this.generationOptions.contentType}_${new Date().toISOString().split('T')[0]}.md`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                
+                async saveContent() {
+                    try {
+                        // Save to Firebase
+                        await this.saveGeneratedContentToFirebase(this.generatedContent);
+                        alert('Content saved to your library!');
+                    } catch (error) {
+                        console.error('Error saving content:', error);
+                        alert('Error saving content. Please try again.');
+                    }
+                },
+                
+                async saveGeneratedContentToFirebase(content) {
+                    if (!this.firebaseService) return;
+                    
+                    const contentData = {
+                        userId: this.getCurrentUserId(),
+                        type: this.generationOptions.contentType,
+                        subject: this.generationOptions.subject,
+                        difficulty: this.generationOptions.difficulty,
+                        content: content,
+                        documentName: this.uploadedFile ? this.uploadedFile.name : 'Unknown',
+                        createdAt: new Date()
+                    };
+                    
+                    await this.firebaseService.saveGeneratedContent(contentData);
+                },
+                
+                async loadDocument(doc) {
+                    // Load document for processing
+                    // This would typically involve downloading the document from Firebase Storage
+                    console.log('Loading document:', doc);
+                },
+                
+                getCurrentUserId() {
+                    // Get current user ID from Firebase auth or localStorage
+                    const user = this.firebaseService ? this.firebaseService.getCurrentUser() : null;
+                    return user ? user.uid : 'anonymous';
+                },
+                
+                async loadRecentDocuments() {
+                    if (!this.firebaseService) return;
+                    
+                    try {
+                        const result = await this.firebaseService.getDocuments(this.getCurrentUserId());
+                        if (result.success) {
+                            this.recentDocuments = result.documents.slice(0, 6); // Show last 6 documents
+                        }
+                    } catch (error) {
+                        console.error('Error loading recent documents:', error);
+                    }
+                },
+                
+                logout() {
+                    if (this.firebaseService) {
+                        this.firebaseService.signOutUser();
+                    }
+                    localStorage.removeItem('user');
+                    window.location.href = 'index.html';
+                },
+                
+                // Notification system
+                showNotification(message, type = 'info') {
+                    const notification = {
+                        id: Date.now(),
+                        message: message,
+                        type: type,
+                        timestamp: new Date()
+                    };
+                    
+                    this.notifications.push(notification);
+                    
+                    // Auto-remove after 5 seconds
+                    setTimeout(() => {
+                        this.removeNotification(notification.id);
+                    }, 5000);
+                },
+                
+                removeNotification(id) {
+                    const index = this.notifications.findIndex(n => n.id === id);
+                    if (index > -1) {
+                        this.notifications.splice(index, 1);
+                    }
+                },
+                
+                clearNotifications() {
+                    this.notifications = [];
+                }
+            },
+            async mounted() {
+                // Initialize navigation system
+                this.initializeNavigation();
+                
+                // Initialize services
+                this.documentService = new DocumentService();
+                this.aiService = new AIService();
+                this.firebaseService = new FirebaseService();
+                
+                // Load recent documents
+                await this.loadRecentDocuments();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

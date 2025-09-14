@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced AI Chatbot - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/@heroicons/vue@2.0.18/24/outline/index.js"></script>
+    <script src="advanced-ai-chatbot.js"></script>
+    <script src="navigation.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #9333EA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .chat-container {
+            height: calc(100vh - 200px);
+            max-height: 600px;
+        }
+        
+        .message-bubble {
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            color: white;
+            margin-left: auto;
+        }
+        
+        .assistant-message {
+            background: #f8fafc;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6b7280;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        .subject-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+        }
+        
+        .level-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+        }
+        
+        .suggestion-chip {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .suggestion-chip:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .knowledge-base-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .knowledge-base-item:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        
+        .learning-path-step {
+            background: white;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        
+        .learning-path-step.completed {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .learning-path-step.current {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app">
+        <!-- Navigation -->
+        <div id="navigation-container"></div>
+
+        <!-- Hero Section -->
+        <section class="gradient-bg py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <div class="flex items-center justify-center mb-6">
+                        <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                            <span class="text-3xl">🤖</span>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                        Advanced AI Chatbot
+                    </h1>
+                    <p class="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
+                        Your intelligent learning companion for any subject, any level, any question
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <div class="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 text-white">
+                            <span class="text-sm font-medium">📚 All Subjects</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 text-white">
+                            <span class="text-sm font-medium">🎯 Personalized</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 text-white">
+                            <span class="text-sm font-medium">⚡ Real-time</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 text-white">
+                            <span class="text-sm font-medium">🧠 Context-Aware</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <!-- Chat Interface -->
+                <div class="lg:col-span-3">
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                        <!-- Chat Header -->
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                        <span class="text-2xl">🤖</span>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-white font-semibold text-lg">AI Learning Assistant</h2>
+                                        <p class="text-white/80 text-sm">Always here to help you learn</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="bg-white/20 rounded-full px-3 py-1">
+                                        <span class="text-white text-sm font-medium">{{ currentSubject || 'General' }}</span>
+                                    </div>
+                                    <div class="bg-white/20 rounded-full px-3 py-1">
+                                        <span class="text-white text-sm font-medium">{{ currentLevel || 'Intermediate' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages -->
+                        <div class="chat-container overflow-y-auto p-6 space-y-4" ref="chatContainer">
+                            <!-- Welcome Message -->
+                            <div v-if="messages.length === 0" class="text-center py-8">
+                                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span class="text-3xl">👋</span>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-2">Welcome to your AI Learning Assistant!</h3>
+                                <p class="text-gray-600 mb-6">I can help you with any subject, from mathematics to literature, at any level.</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                                    <button 
+                                        v-for="suggestion in welcomeSuggestions" 
+                                        :key="suggestion"
+                                        @click="sendMessage(suggestion)"
+                                        class="suggestion-chip text-left"
+                                    >
+                                        {{ suggestion }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Messages -->
+                            <div 
+                                v-for="(message, index) in messages" 
+                                :key="index"
+                                class="flex"
+                                :class="message.type === 'user' ? 'justify-end' : 'justify-start'"
+                            >
+                                <div 
+                                    class="message-bubble rounded-2xl px-4 py-3"
+                                    :class="message.type === 'user' ? 'user-message' : 'assistant-message'"
+                                >
+                                    <div v-if="message.type === 'assistant'" class="flex items-center space-x-2 mb-2">
+                                        <span class="text-sm font-medium text-gray-600">AI Assistant</span>
+                                        <span v-if="message.subject" class="subject-badge">{{ message.subject }}</span>
+                                        <span v-if="message.level" class="level-badge">{{ message.level }}</span>
+                                    </div>
+                                    <div class="whitespace-pre-wrap">{{ message.content }}</div>
+                                    <div class="text-xs opacity-70 mt-2">
+                                        {{ formatTime(message.timestamp) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Typing Indicator -->
+                            <div v-if="isTyping" class="flex justify-start">
+                                <div class="assistant-message message-bubble rounded-2xl px-4 py-3">
+                                    <div class="typing-indicator">
+                                        <span class="text-sm text-gray-600 mr-2">AI is thinking</span>
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Input -->
+                        <div class="border-t border-gray-200 p-4">
+                            <div class="flex space-x-3">
+                                <div class="flex-1">
+                                    <textarea
+                                        v-model="inputMessage"
+                                        @keydown.enter.prevent="handleEnterKey"
+                                        placeholder="Ask me anything about any subject..."
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                        rows="1"
+                                        ref="messageInput"
+                                    ></textarea>
+                                </div>
+                                <button
+                                    @click="sendMessage()"
+                                    :disabled="!inputMessage.trim() || isTyping"
+                                    class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <span v-if="!isTyping">Send</span>
+                                    <span v-else>...</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Quick Actions -->
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <button 
+                                    v-for="action in quickActions" 
+                                    :key="action"
+                                    @click="sendMessage(action)"
+                                    class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors"
+                                >
+                                    {{ action }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="space-y-6">
+                    <!-- Knowledge Base -->
+                    <div class="feature-card">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <span class="text-2xl mr-2">📚</span>
+                            Knowledge Base
+                        </h3>
+                        <div class="space-y-2">
+                            <div 
+                                v-for="subject in knowledgeSubjects" 
+                                :key="subject.name"
+                                @click="exploreSubject(subject.name)"
+                                class="knowledge-base-item"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-800">{{ subject.name }}</span>
+                                    <span class="text-2xl">{{ subject.icon }}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">{{ subject.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Learning Paths -->
+                    <div class="feature-card">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <span class="text-2xl mr-2">🎯</span>
+                            Learning Paths
+                        </h3>
+                        <div class="space-y-2">
+                            <div 
+                                v-for="path in learningPaths" 
+                                :key="path.subject"
+                                @click="exploreLearningPath(path.subject)"
+                                class="learning-path-step"
+                            >
+                                <div class="font-medium text-gray-800">{{ path.subject }}</div>
+                                <div class="text-sm text-gray-600">{{ path.description }}</div>
+                                <div class="flex items-center mt-2">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-500 h-2 rounded-full" :style="`width: ${path.progress}%`"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-500 ml-2">{{ path.progress }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Topics -->
+                    <div class="feature-card">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <span class="text-2xl mr-2">🕒</span>
+                            Recent Topics
+                        </h3>
+                        <div class="space-y-2">
+                            <div 
+                                v-for="topic in recentTopics" 
+                                :key="topic"
+                                @click="sendMessage(`Tell me more about ${topic}`)"
+                                class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg cursor-pointer transition-colors"
+                            >
+                                {{ topic }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings -->
+                    <div class="feature-card">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <span class="text-2xl mr-2">⚙️</span>
+                            Settings
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Learning Level</label>
+                                <select v-model="userLevel" @change="updateUserLevel" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">AI Provider</label>
+                                <select v-model="aiProvider" @change="updateAIProvider" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="huggingface">Hugging Face</option>
+                                    <option value="openai">OpenAI (if available)</option>
+                                </select>
+                            </div>
+                            <button @click="clearHistory" class="w-full px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
+                                Clear Chat History
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    // Chat state
+                    messages: [],
+                    inputMessage: '',
+                    isTyping: false,
+                    
+                    // User context
+                    currentSubject: null,
+                    currentLevel: 'intermediate',
+                    userLevel: 'intermediate',
+                    aiProvider: 'huggingface',
+                    
+                    // AI Chatbot instance
+                    chatbot: null,
+                    
+                    // UI data
+                    welcomeSuggestions: [
+                        'Explain calculus derivatives',
+                        'Help me understand photosynthesis',
+                        'Teach me about World War II',
+                        'How do I write a good essay?',
+                        'Explain quantum physics basics',
+                        'Help me learn Spanish grammar'
+                    ],
+                    
+                    quickActions: [
+                        'Explain this concept',
+                        'Give me examples',
+                        'Create a study plan',
+                        'Test my knowledge',
+                        'Show me practice problems'
+                    ],
+                    
+                    knowledgeSubjects: [
+                        { name: 'Mathematics', icon: '🔢', description: 'Algebra, Calculus, Geometry' },
+                        { name: 'Science', icon: '🔬', description: 'Physics, Chemistry, Biology' },
+                        { name: 'Engineering', icon: '⚙️', description: 'Mechanical, Electrical, Civil' },
+                        { name: 'Literature', icon: '📖', description: 'Poetry, Prose, Analysis' },
+                        { name: 'History', icon: '📜', description: 'Ancient, Medieval, Modern' },
+                        { name: 'Languages', icon: '🗣️', description: 'Grammar, Writing, Speaking' },
+                        { name: 'Arts', icon: '🎨', description: 'Visual, Music, Theater' },
+                        { name: 'Business', icon: '💼', description: 'Management, Marketing, Finance' },
+                        { name: 'Programming', icon: '💻', description: 'Coding, Algorithms, Systems' }
+                    ],
+                    
+                    learningPaths: [
+                        { subject: 'Mathematics', description: 'From basics to advanced calculus', progress: 65 },
+                        { subject: 'Science', description: 'Physics, Chemistry, Biology journey', progress: 40 },
+                        { subject: 'Programming', description: 'Learn to code from scratch', progress: 80 },
+                        { subject: 'Literature', description: 'Master writing and analysis', progress: 25 }
+                    ],
+                    
+                    recentTopics: ['Calculus', 'Photosynthesis', 'World War II', 'Python Programming', 'Shakespeare']
+                }
+            },
+            
+            methods: {
+                // Initialize chatbot
+                initializeChatbot() {
+                    this.chatbot = new AdvancedAIChatbot();
+                    this.loadChatHistory();
+                },
+                
+                // Initialize navigation
+                initializeNavigation() {
+                    if (window.navigation) {
+                        const navContainer = document.getElementById('navigation-container');
+                        if (navContainer) {
+                            navContainer.innerHTML = window.navigation.generateNavigationHTML();
+                            window.navigation.initialize();
+                        }
+                    }
+                },
+                
+                // Send message
+                async sendMessage(message = null) {
+                    const messageText = message || this.inputMessage.trim();
+                    if (!messageText) return;
+                    
+                    // Add user message
+                    this.messages.push({
+                        type: 'user',
+                        content: messageText,
+                        timestamp: new Date()
+                    });
+                    
+                    // Clear input
+                    this.inputMessage = '';
+                    
+                    // Show typing indicator
+                    this.isTyping = true;
+                    
+                    // Scroll to bottom
+                    this.$nextTick(() => {
+                        this.scrollToBottom();
+                    });
+                    
+                    try {
+                        // Get AI response
+                        const response = await this.chatbot.chat(messageText, {
+                            subject: this.currentSubject,
+                            level: this.userLevel
+                        });
+                        
+                        // Add assistant message
+                        this.messages.push({
+                            type: 'assistant',
+                            content: response,
+                            timestamp: new Date(),
+                            subject: this.chatbot.identifySubject(messageText),
+                            level: this.chatbot.assessLearningLevel(messageText)
+                        });
+                        
+                        // Update context
+                        this.updateContext();
+                        
+                    } catch (error) {
+                        console.error('Error getting response:', error);
+                        this.messages.push({
+                            type: 'assistant',
+                            content: 'I apologize, but I encountered an error. Please try again.',
+                            timestamp: new Date()
+                        });
+                    } finally {
+                        this.isTyping = false;
+                        this.$nextTick(() => {
+                            this.scrollToBottom();
+                        });
+                    }
+                },
+                
+                // Handle enter key
+                handleEnterKey(event) {
+                    if (event.shiftKey) {
+                        // Allow new line
+                        return;
+                    } else {
+                        // Send message
+                        event.preventDefault();
+                        this.sendMessage();
+                    }
+                },
+                
+                // Update context
+                updateContext() {
+                    const context = this.chatbot.getUserContext();
+                    this.currentSubject = context.currentSubject;
+                    this.currentLevel = context.learningLevel;
+                    this.recentTopics = context.recentTopics || [];
+                },
+                
+                // Explore subject
+                exploreSubject(subjectName) {
+                    this.sendMessage(`I want to learn about ${subjectName}. Can you give me an overview and learning path?`);
+                },
+                
+                // Explore learning path
+                exploreLearningPath(subject) {
+                    this.sendMessage(`Show me the learning path for ${subject} and help me get started.`);
+                },
+                
+                // Update user level
+                updateUserLevel() {
+                    this.chatbot.updateUserContext({ learningLevel: this.userLevel });
+                },
+                
+                // Update AI provider
+                updateAIProvider() {
+                    this.chatbot.setProvider(this.aiProvider);
+                },
+                
+                // Clear history
+                clearHistory() {
+                    if (confirm('Are you sure you want to clear all chat history?')) {
+                        this.messages = [];
+                        this.chatbot.clearHistory();
+                    }
+                },
+                
+                // Load chat history
+                loadChatHistory() {
+                    const history = this.chatbot.getConversationHistory();
+                    this.messages = history.map(conv => ({
+                        type: 'assistant',
+                        content: conv.assistant,
+                        timestamp: conv.timestamp,
+                        subject: conv.subject,
+                        level: conv.level
+                    }));
+                },
+                
+                // Scroll to bottom
+                scrollToBottom() {
+                    const container = this.$refs.chatContainer;
+                    if (container) {
+                        container.scrollTop = container.scrollHeight;
+                    }
+                },
+                
+                // Format time
+                formatTime(timestamp) {
+                    const date = new Date(timestamp);
+                    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+            },
+            
+            mounted() {
+                this.initializeNavigation();
+                this.initializeChatbot();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

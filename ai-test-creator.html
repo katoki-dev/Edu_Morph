@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Test Creator & Analyzer - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="ai-test-analytics.js"></script>
+    <script src="ai-service.js"></script>
+    <script src="navigation.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #9333EA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .test-builder-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+        
+        .test-builder-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .question-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            transition: all 0.2s ease;
+        }
+        
+        .question-card:hover {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+        }
+        
+        .difficulty-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .difficulty-easy {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .difficulty-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .difficulty-hard {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .topic-tag {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .ai-suggestion {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .analysis-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .progress-bar {
+            height: 0.5rem;
+            background: #e2e8f0;
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 0.25rem;
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-right: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .step.active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .step.completed {
+            background: #10b981;
+            color: white;
+        }
+        
+        .step.pending {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app">
+        <!-- Navigation -->
+        <div id="navigation-container"></div>
+
+        <!-- Header -->
+        <section class="gradient-bg py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <div class="flex items-center justify-center mb-6">
+                        <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                            <span class="text-3xl">📝</span>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                        AI Test Creator & Analyzer
+                    </h1>
+                    <p class="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
+                        Create intelligent tests, analyze performance, and get AI-powered insights for better teaching
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step" :class="{ active: currentStep === 1, completed: currentStep > 1 }">
+                    1. Test Setup
+                </div>
+                <div class="step" :class="{ active: currentStep === 2, completed: currentStep > 2 }">
+                    2. Generate Questions
+                </div>
+                <div class="step" :class="{ active: currentStep === 3, completed: currentStep > 3 }">
+                    3. Review & Edit
+                </div>
+                <div class="step" :class="{ active: currentStep === 4, completed: currentStep > 4 }">
+                    4. Publish & Analyze
+                </div>
+            </div>
+
+            <!-- Step 1: Test Setup -->
+            <div v-if="currentStep === 1" class="space-y-6">
+                <div class="test-builder-card">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Test Configuration</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Basic Information -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Test Name</label>
+                                    <input 
+                                        v-model="testConfig.name"
+                                        type="text"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter test name"
+                                    >
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                                    <select 
+                                        v-model="testConfig.subject"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select Subject</option>
+                                        <option value="Mathematics">Mathematics</option>
+                                        <option value="Science">Science</option>
+                                        <option value="English">English</option>
+                                        <option value="History">History</option>
+                                        <option value="Computer Science">Computer Science</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                                    <select 
+                                        v-model="testConfig.gradeLevel"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select Grade</option>
+                                        <option value="Elementary">Elementary (K-5)</option>
+                                        <option value="Middle">Middle School (6-8)</option>
+                                        <option value="High">High School (9-12)</option>
+                                        <option value="College">College</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Parameters -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Test Parameters</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
+                                    <input 
+                                        v-model.number="testConfig.questionCount"
+                                        type="number"
+                                        min="5"
+                                        max="50"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Time Limit (minutes)</label>
+                                    <input 
+                                        v-model.number="testConfig.timeLimit"
+                                        type="number"
+                                        min="15"
+                                        max="180"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Difficulty Distribution</label>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">Easy</span>
+                                            <input 
+                                                v-model.number="testConfig.difficultyDistribution.easy"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                class="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                            >
+                                            <span class="text-sm">%</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">Medium</span>
+                                            <input 
+                                                v-model.number="testConfig.difficultyDistribution.medium"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                class="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                            >
+                                            <span class="text-sm">%</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">Hard</span>
+                                            <input 
+                                                v-model.number="testConfig.difficultyDistribution.hard"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                class="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                            >
+                                            <span class="text-sm">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Topics Selection -->
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Topics to Cover</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            <label 
+                                v-for="topic in availableTopics" 
+                                :key="topic"
+                                class="flex items-center space-x-2 p-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
+                                :class="{ 'bg-blue-50 border-blue-300': testConfig.topics.includes(topic) }"
+                            >
+                                <input 
+                                    v-model="testConfig.topics"
+                                    type="checkbox"
+                                    :value="topic"
+                                    class="sr-only"
+                                >
+                                <span class="text-sm">{{ topic }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- AI Suggestions -->
+                    <div v-if="aiSuggestions.length > 0" class="mt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">AI Suggestions</h3>
+                        <div class="space-y-2">
+                            <div 
+                                v-for="suggestion in aiSuggestions" 
+                                :key="suggestion.id"
+                                class="ai-suggestion"
+                            >
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <div class="font-semibold text-gray-800">{{ suggestion.title }}</div>
+                                        <div class="text-sm text-gray-600 mt-1">{{ suggestion.description }}</div>
+                                    </div>
+                                    <button 
+                                        @click="applySuggestion(suggestion)"
+                                        class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button 
+                            @click="nextStep"
+                            :disabled="!isStep1Valid"
+                            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Generate Questions
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Generate Questions -->
+            <div v-if="currentStep === 2" class="space-y-6">
+                <div class="test-builder-card">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">AI Question Generation</h2>
+                    
+                    <div class="text-center py-8" v-if="isGenerating">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+                        <p class="text-gray-600">AI is generating questions based on your specifications...</p>
+                    </div>
+
+                    <div v-else-if="generatedQuestions.length > 0" class="space-y-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Generated Questions ({{ generatedQuestions.length }})</h3>
+                            <button 
+                                @click="regenerateQuestions"
+                                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                            >
+                                Regenerate All
+                            </button>
+                        </div>
+                        
+                        <div 
+                            v-for="(question, index) in generatedQuestions" 
+                            :key="question.id"
+                            class="question-card"
+                        >
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="font-semibold text-gray-800">Q{{ index + 1 }}.</span>
+                                        <span class="topic-tag">{{ question.topic }}</span>
+                                        <span 
+                                            class="difficulty-badge"
+                                            :class="getDifficultyClass(question.difficulty)"
+                                        >
+                                            {{ getDifficultyText(question.difficulty) }}
+                                        </span>
+                                    </div>
+                                    <p class="text-gray-700 mb-3">{{ question.text }}</p>
+                                    
+                                    <!-- Multiple Choice Options -->
+                                    <div v-if="question.type === 'multiple_choice'" class="space-y-2">
+                                        <div 
+                                            v-for="(option, optIndex) in question.options" 
+                                            :key="optIndex"
+                                            class="flex items-center space-x-2"
+                                        >
+                                            <span class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-sm">
+                                                {{ String.fromCharCode(65 + optIndex) }}
+                                            </span>
+                                            <span class="text-gray-700">{{ option }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-2 ml-4">
+                                    <button 
+                                        @click="editQuestion(question)"
+                                        class="text-blue-600 hover:text-blue-800 text-sm"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button 
+                                        @click="removeQuestion(question.id)"
+                                        class="text-red-600 hover:text-red-800 text-sm"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-between">
+                        <button 
+                            @click="prevStep"
+                            class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                        >
+                            Back
+                        </button>
+                        <button 
+                            @click="nextStep"
+                            :disabled="generatedQuestions.length === 0"
+                            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Review Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Review & Edit -->
+            <div v-if="currentStep === 3" class="space-y-6">
+                <div class="test-builder-card">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Test Review & Analysis</h2>
+                    
+                    <!-- Test Preview -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Test Preview</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div class="metric-card">
+                                    <div class="text-2xl font-bold text-blue-600">{{ generatedQuestions.length }}</div>
+                                    <div class="text-sm text-gray-600">Questions</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="text-2xl font-bold text-green-600">{{ testConfig.timeLimit }}</div>
+                                    <div class="text-sm text-gray-600">Minutes</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="text-2xl font-bold text-purple-600">{{ testConfig.subject }}</div>
+                                    <div class="text-sm text-gray-600">Subject</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="text-2xl font-bold text-orange-600">{{ testConfig.gradeLevel }}</div>
+                                    <div class="text-sm text-gray-600">Grade</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Topic Distribution -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Topic Distribution</h3>
+                        <div class="space-y-2">
+                            <div 
+                                v-for="topic in topicDistribution" 
+                                :key="topic.name"
+                                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                            >
+                                <span class="font-medium">{{ topic.name }}</span>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-32 h-2 bg-gray-200 rounded">
+                                        <div 
+                                            class="h-2 bg-blue-500 rounded" 
+                                            :style="`width: ${topic.percentage}%`"
+                                        ></div>
+                                    </div>
+                                    <span class="text-sm text-gray-600">{{ topic.count }} questions</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Difficulty Analysis -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Difficulty Analysis</h3>
+                        <div class="analysis-panel">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-green-600">{{ difficultyStats.easy }}</div>
+                                    <div class="text-sm text-gray-600">Easy Questions</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-yellow-600">{{ difficultyStats.medium }}</div>
+                                    <div class="text-sm text-gray-600">Medium Questions</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-red-600">{{ difficultyStats.hard }}</div>
+                                    <div class="text-sm text-gray-600">Hard Questions</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Recommendations -->
+                    <div v-if="testRecommendations.length > 0" class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">AI Recommendations</h3>
+                        <div class="space-y-2">
+                            <div 
+                                v-for="rec in testRecommendations" 
+                                :key="rec.id"
+                                class="ai-suggestion"
+                            >
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <div class="font-semibold text-gray-800">{{ rec.title }}</div>
+                                        <div class="text-sm text-gray-600 mt-1">{{ rec.description }}</div>
+                                    </div>
+                                    <span 
+                                        class="text-xs px-2 py-1 rounded"
+                                        :class="rec.priority === 'high' ? 'bg-red-100 text-red-800' : rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
+                                    >
+                                        {{ rec.priority }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-between">
+                        <button 
+                            @click="prevStep"
+                            class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                        >
+                            Back
+                        </button>
+                        <button 
+                            @click="nextStep"
+                            class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                        >
+                            Publish Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Publish & Analyze -->
+            <div v-if="currentStep === 4" class="space-y-6">
+                <div class="test-builder-card">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Test Published Successfully!</h2>
+                    
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-center">
+                            <span class="text-green-600 text-2xl mr-3">✅</span>
+                            <div>
+                                <div class="font-semibold text-green-800">Test Ready for Students</div>
+                                <div class="text-sm text-green-600">Your test has been published and is ready for students to take.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Test Details</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Test Name:</span>
+                                    <span class="font-medium">{{ testConfig.name }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Subject:</span>
+                                    <span class="font-medium">{{ testConfig.subject }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Questions:</span>
+                                    <span class="font-medium">{{ generatedQuestions.length }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Time Limit:</span>
+                                    <span class="font-medium">{{ testConfig.timeLimit }} minutes</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Test ID:</span>
+                                    <span class="font-medium text-blue-600">{{ testId }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                            <div class="space-y-2">
+                                <button 
+                                    @click="viewAnalytics"
+                                    class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                >
+                                    View Analytics Dashboard
+                                </button>
+                                <button 
+                                    @click="shareTest"
+                                    class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                >
+                                    Share Test Link
+                                </button>
+                                <button 
+                                    @click="createNewTest"
+                                    class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                                >
+                                    Create Another Test
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Preview -->
+                    <div class="analysis-panel">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Analytics Preview</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-blue-600">0</div>
+                                <div class="text-sm text-gray-600">Students Completed</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600">0%</div>
+                                <div class="text-sm text-gray-600">Average Score</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-purple-600">0</div>
+                                <div class="text-sm text-gray-600">Analytics Available</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    currentStep: 1,
+                    testId: null,
+                    isGenerating: false,
+                    
+                    // Test configuration
+                    testConfig: {
+                        name: '',
+                        subject: '',
+                        gradeLevel: '',
+                        questionCount: 10,
+                        timeLimit: 60,
+                        difficultyDistribution: {
+                            easy: 30,
+                            medium: 50,
+                            hard: 20
+                        },
+                        topics: []
+                    },
+                    
+                    // Available topics based on subject
+                    availableTopics: [],
+                    
+                    // Generated questions
+                    generatedQuestions: [],
+                    
+                    // AI suggestions
+                    aiSuggestions: [],
+                    
+                    // Test recommendations
+                    testRecommendations: [],
+                    
+                    // Analytics
+                    analytics: null,
+                    aiService: null
+                }
+            },
+            
+            computed: {
+                isStep1Valid() {
+                    return this.testConfig.name && 
+                           this.testConfig.subject && 
+                           this.testConfig.gradeLevel &&
+                           this.testConfig.topics.length > 0;
+                },
+                
+                topicDistribution() {
+                    const distribution = new Map();
+                    
+                    this.generatedQuestions.forEach(question => {
+                        const topic = question.topic;
+                        if (!distribution.has(topic)) {
+                            distribution.set(topic, { name: topic, count: 0 });
+                        }
+                        distribution.get(topic).count++;
+                    });
+                    
+                    return Array.from(distribution.values()).map(topic => ({
+                        ...topic,
+                        percentage: (topic.count / this.generatedQuestions.length) * 100
+                    }));
+                },
+                
+                difficultyStats() {
+                    const stats = { easy: 0, medium: 0, hard: 0 };
+                    
+                    this.generatedQuestions.forEach(question => {
+                        if (question.difficulty <= 4) stats.easy++;
+                        else if (question.difficulty <= 7) stats.medium++;
+                        else stats.hard++;
+                    });
+                    
+                    return stats;
+                }
+            },
+            
+            watch: {
+                'testConfig.subject'(newSubject) {
+                    this.updateAvailableTopics(newSubject);
+                    this.generateAISuggestions();
+                }
+            },
+            
+            methods: {
+                // Initialize
+                initialize() {
+                    this.analytics = new AITestAnalytics();
+                    this.aiService = new AIService();
+                    this.initializeNavigation();
+                    this.generateAISuggestions();
+                },
+                
+                // Initialize navigation
+                initializeNavigation() {
+                    if (window.navigation) {
+                        const navContainer = document.getElementById('navigation-container');
+                        if (navContainer) {
+                            navContainer.innerHTML = window.navigation.generateNavigationHTML();
+                            window.navigation.initialize();
+                        }
+                    }
+                },
+                
+                // Update available topics based on subject
+                updateAvailableTopics(subject) {
+                    const topicMap = {
+                        'Mathematics': ['Algebra', 'Geometry', 'Calculus', 'Statistics', 'Trigonometry', 'Probability'],
+                        'Science': ['Physics', 'Chemistry', 'Biology', 'Earth Science', 'Environmental Science'],
+                        'English': ['Reading Comprehension', 'Writing', 'Grammar', 'Literature', 'Vocabulary'],
+                        'History': ['World History', 'US History', 'Ancient History', 'Modern History', 'Geography'],
+                        'Computer Science': ['Programming', 'Algorithms', 'Data Structures', 'Web Development', 'Database']
+                    };
+                    
+                    this.availableTopics = topicMap[subject] || [];
+                    this.testConfig.topics = [];
+                },
+                
+                // Generate AI suggestions
+                async generateAISuggestions() {
+                    if (!this.testConfig.subject) return;
+                    
+                    try {
+                        const suggestions = await this.getAISuggestions();
+                        this.aiSuggestions = suggestions;
+                    } catch (error) {
+                        console.error('Error generating AI suggestions:', error);
+                    }
+                },
+                
+                // Get AI suggestions for test configuration
+                async getAISuggestions() {
+                    const suggestions = [
+                        {
+                            id: 1,
+                            title: 'Recommended Question Count',
+                            description: `For ${this.testConfig.gradeLevel} level, consider ${this.getRecommendedQuestionCount()} questions for optimal assessment.`,
+                            action: 'updateQuestionCount'
+                        },
+                        {
+                            id: 2,
+                            title: 'Time Allocation',
+                            description: `Based on difficulty distribution, allocate ${this.getRecommendedTime()} minutes for better pacing.`,
+                            action: 'updateTimeLimit'
+                        },
+                        {
+                            id: 3,
+                            title: 'Topic Balance',
+                            description: 'Consider including more questions from core topics for comprehensive assessment.',
+                            action: 'balanceTopics'
+                        }
+                    ];
+                    
+                    return suggestions;
+                },
+                
+                // Get recommended question count
+                getRecommendedQuestionCount() {
+                    const recommendations = {
+                        'Elementary': 15,
+                        'Middle': 20,
+                        'High': 25,
+                        'College': 30
+                    };
+                    return recommendations[this.testConfig.gradeLevel] || 20;
+                },
+                
+                // Get recommended time limit
+                getRecommendedTime() {
+                    const baseTime = this.testConfig.questionCount * 2;
+                    const difficultyMultiplier = this.testConfig.difficultyDistribution.hard / 100;
+                    return Math.round(baseTime + (baseTime * difficultyMultiplier * 0.5));
+                },
+                
+                // Apply AI suggestion
+                applySuggestion(suggestion) {
+                    switch (suggestion.action) {
+                        case 'updateQuestionCount':
+                            this.testConfig.questionCount = this.getRecommendedQuestionCount();
+                            break;
+                        case 'updateTimeLimit':
+                            this.testConfig.timeLimit = this.getRecommendedTime();
+                            break;
+                        case 'balanceTopics':
+                            // Auto-select core topics
+                            const coreTopics = this.availableTopics.slice(0, 3);
+                            this.testConfig.topics = [...new Set([...this.testConfig.topics, ...coreTopics])];
+                            break;
+                    }
+                    
+                    // Remove applied suggestion
+                    this.aiSuggestions = this.aiSuggestions.filter(s => s.id !== suggestion.id);
+                },
+                
+                // Navigation methods
+                nextStep() {
+                    if (this.currentStep < 4) {
+                        this.currentStep++;
+                        if (this.currentStep === 2) {
+                            this.generateQuestions();
+                        } else if (this.currentStep === 3) {
+                            this.analyzeTest();
+                        } else if (this.currentStep === 4) {
+                            this.publishTest();
+                        }
+                    }
+                },
+                
+                prevStep() {
+                    if (this.currentStep > 1) {
+                        this.currentStep--;
+                    }
+                },
+                
+                // Generate questions using AI
+                async generateQuestions() {
+                    this.isGenerating = true;
+                    
+                    try {
+                        const questions = await this.aiService.generateTestQuestions({
+                            subject: this.testConfig.subject,
+                            topics: this.testConfig.topics,
+                            count: this.testConfig.questionCount,
+                            difficulty: this.testConfig.difficultyDistribution,
+                            gradeLevel: this.testConfig.gradeLevel
+                        });
+                        
+                        this.generatedQuestions = questions;
+                    } catch (error) {
+                        console.error('Error generating questions:', error);
+                        // Fallback to sample questions
+                        this.generatedQuestions = this.generateSampleQuestions();
+                    } finally {
+                        this.isGenerating = false;
+                    }
+                },
+                
+                // Generate sample questions for demonstration
+                generateSampleQuestions() {
+                    const sampleQuestions = [
+                        {
+                            id: 'q1',
+                            text: 'What is the value of x in the equation 2x + 5 = 13?',
+                            type: 'multiple_choice',
+                            options: ['4', '6', '8', '9'],
+                            correctAnswer: 0,
+                            topic: 'Algebra',
+                            difficulty: 3
+                        },
+                        {
+                            id: 'q2',
+                            text: 'Calculate the area of a circle with radius 7 cm.',
+                            type: 'multiple_choice',
+                            options: ['49π cm²', '14π cm²', '154π cm²', '22π cm²'],
+                            correctAnswer: 2,
+                            topic: 'Geometry',
+                            difficulty: 4
+                        },
+                        {
+                            id: 'q3',
+                            text: 'What is the derivative of x²?',
+                            type: 'multiple_choice',
+                            options: ['x', '2x', 'x²', '2x²'],
+                            correctAnswer: 1,
+                            topic: 'Calculus',
+                            difficulty: 6
+                        }
+                    ];
+                    
+                    return sampleQuestions;
+                },
+                
+                // Regenerate questions
+                async regenerateQuestions() {
+                    await this.generateQuestions();
+                },
+                
+                // Edit question
+                editQuestion(question) {
+                    // Implement question editing modal
+                    console.log('Edit question:', question);
+                },
+                
+                // Remove question
+                removeQuestion(questionId) {
+                    this.generatedQuestions = this.generatedQuestions.filter(q => q.id !== questionId);
+                },
+                
+                // Analyze test
+                async analyzeTest() {
+                    try {
+                        const analysis = await this.analytics.analyzeTest({
+                            id: 'temp_test',
+                            name: this.testConfig.name,
+                            subject: this.testConfig.subject,
+                            date: new Date(),
+                            questions: this.generatedQuestions,
+                            students: [] // No students yet
+                        });
+                        
+                        this.testRecommendations = this.generateTestRecommendations(analysis);
+                    } catch (error) {
+                        console.error('Error analyzing test:', error);
+                        this.testRecommendations = this.generateSampleRecommendations();
+                    }
+                },
+                
+                // Generate test recommendations
+                generateTestRecommendations(analysis) {
+                    const recommendations = [];
+                    
+                    // Check topic distribution
+                    if (this.topicDistribution.length < 3) {
+                        recommendations.push({
+                            id: 1,
+                            title: 'Topic Diversity',
+                            description: 'Consider adding more topics for comprehensive assessment',
+                            priority: 'medium'
+                        });
+                    }
+                    
+                    // Check difficulty balance
+                    if (this.difficultyStats.hard > this.difficultyStats.easy) {
+                        recommendations.push({
+                            id: 2,
+                            title: 'Difficulty Balance',
+                            description: 'Test may be too challenging. Consider adding more easy questions',
+                            priority: 'high'
+                        });
+                    }
+                    
+                    // Check time allocation
+                    const estimatedTime = this.generatedQuestions.length * 2;
+                    if (estimatedTime > this.testConfig.timeLimit) {
+                        recommendations.push({
+                            id: 3,
+                            title: 'Time Management',
+                            description: 'Consider increasing time limit or reducing question count',
+                            priority: 'high'
+                        });
+                    }
+                    
+                    return recommendations;
+                },
+                
+                // Generate sample recommendations
+                generateSampleRecommendations() {
+                    return [
+                        {
+                            id: 1,
+                            title: 'Topic Diversity',
+                            description: 'Consider adding more topics for comprehensive assessment',
+                            priority: 'medium'
+                        },
+                        {
+                            id: 2,
+                            title: 'Difficulty Balance',
+                            description: 'Test difficulty is well-balanced across all levels',
+                            priority: 'low'
+                        }
+                    ];
+                },
+                
+                // Publish test
+                publishTest() {
+                    this.testId = 'TEST_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                    // In a real application, this would save to database
+                    console.log('Test published:', this.testId);
+                },
+                
+                // View analytics
+                viewAnalytics() {
+                    window.open('teacher-analytics-dashboard.html', '_blank');
+                },
+                
+                // Share test
+                shareTest() {
+                    const testLink = `${window.location.origin}/test/${this.testId}`;
+                    navigator.clipboard.writeText(testLink).then(() => {
+                        alert('Test link copied to clipboard!');
+                    });
+                },
+                
+                // Create new test
+                createNewTest() {
+                    this.currentStep = 1;
+                    this.testConfig = {
+                        name: '',
+                        subject: '',
+                        gradeLevel: '',
+                        questionCount: 10,
+                        timeLimit: 60,
+                        difficultyDistribution: {
+                            easy: 30,
+                            medium: 50,
+                            hard: 20
+                        },
+                        topics: []
+                    };
+                    this.generatedQuestions = [];
+                    this.testRecommendations = [];
+                    this.testId = null;
+                },
+                
+                // Utility methods
+                getDifficultyClass(difficulty) {
+                    if (difficulty <= 4) return 'difficulty-easy';
+                    if (difficulty <= 7) return 'difficulty-medium';
+                    return 'difficulty-hard';
+                },
+                
+                getDifficultyText(difficulty) {
+                    if (difficulty <= 4) return 'Easy';
+                    if (difficulty <= 7) return 'Medium';
+                    return 'Hard';
+                }
+            },
+            
+            mounted() {
+                this.initialize();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

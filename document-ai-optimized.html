@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document AI Generator - EDU-MORPH (Optimized)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="ai-service.js"></script>
+    <script src="document-service.js"></script>
+    <script src="firebase-service.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="performance-monitor.js"></script>
+    <script src="navigation.js"></script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #9333EA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #cbd5e0;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background-color: #f7fafc;
+        }
+        
+        .content-card {
+            transition: all 0.3s ease;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .performance-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .hero-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+        }
+        
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="100" fill="url(%23a)"/><circle cx="800" cy="300" r="150" fill="url(%23a)"/><circle cx="400" cy="700" r="120" fill="url(%23a)"/></svg>') no-repeat center center;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app">
+        <!-- Navigation -->
+        <div id="navigation-container"></div>
+
+        <!-- Performance Dashboard Modal -->
+        <div v-if="showPerformanceDashboard" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 max-w-4xl max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Performance Dashboard</h2>
+                    <button @click="showPerformanceDashboard = false" class="text-gray-500 hover:text-gray-700">✕</button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-semibold mb-2">Overview</h3>
+                        <div class="space-y-1 text-sm">
+                            <div>Total Operations: {{ performanceData.overview.totalOperations }}</div>
+                            <div>Avg Response Time: {{ performanceData.overview.averageResponseTime.toFixed(2) }}ms</div>
+                            <div>Success Rate: {{ performanceData.overview.successRate.toFixed(1) }}%</div>
+                            <div>Uptime: {{ formatUptime(performanceData.overview.uptime) }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-semibold mb-2">By Operation</h3>
+                        <div class="space-y-1 text-sm">
+                            <div v-for="(stats, operation) in performanceData.byOperation" :key="operation">
+                                <div class="font-medium">{{ operation }}</div>
+                                <div class="ml-2">Count: {{ stats.count }}, Avg: {{ stats.average.toFixed(2) }}ms</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div v-if="performanceData.recommendations.length > 0" class="mt-4">
+                    <h3 class="font-semibold mb-2">Recommendations</h3>
+                    <div class="space-y-2">
+                        <div v-for="rec in performanceData.recommendations" :key="rec.message" 
+                             class="p-2 rounded text-sm"
+                             :class="{
+                                 'bg-yellow-100 text-yellow-800': rec.severity === 'warning',
+                                 'bg-red-100 text-red-800': rec.severity === 'error'
+                             }">
+                            {{ rec.message }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="fixed top-4 right-4 z-50 space-y-2">
+            <div 
+                v-for="notification in notifications" 
+                :key="notification.id"
+                class="max-w-sm bg-white rounded-lg shadow-lg border-l-4 p-4 transform transition-all duration-300"
+                :class="{
+                    'border-green-500': notification.type === 'success',
+                    'border-red-500': notification.type === 'error',
+                    'border-yellow-500': notification.type === 'warning',
+                    'border-blue-500': notification.type === 'info'
+                }"
+            >
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <span v-if="notification.type === 'success'" class="text-green-500">✅</span>
+                        <span v-else-if="notification.type === 'error'" class="text-red-500">❌</span>
+                        <span v-else-if="notification.type === 'warning'" class="text-yellow-500">⚠️</span>
+                        <span v-else class="text-blue-500">ℹ️</span>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium text-gray-900">{{ notification.message }}</p>
+                    </div>
+                    <button 
+                        @click="removeNotification(notification.id)"
+                        class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <section class="hero-bg min-h-96 flex items-center justify-center relative">
+            <div class="absolute inset-0 bg-black/20"></div>
+            <div class="relative z-10 max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-center mb-6">
+                    <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 shadow-lg overflow-hidden">
+                        <img src="logo.png" alt="EDU-MORPH Logo" class="w-16 h-16 object-contain">
+                    </div>
+                </div>
+                <h1 class="text-5xl font-bold text-white mb-6 drop-shadow-lg">Document AI Generator (Optimized)</h1>
+                <p class="text-xl text-white/90 mb-8 drop-shadow-md">Upload documents and generate educational content with AI</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                        <div class="text-2xl mb-2">⚡</div>
+                        <div class="text-white font-semibold">Optimized Performance</div>
+                        <div class="text-white/80 text-sm">Enhanced speed and monitoring</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                        <div class="text-2xl mb-2">📊</div>
+                        <div class="text-white font-semibold">Real-time Monitoring</div>
+                        <div class="text-white/80 text-sm">Performance dashboard</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                        <div class="text-2xl mb-2">🎯</div>
+                        <div class="text-white font-semibold">Advanced Features</div>
+                        <div class="text-white/80 text-sm">Enhanced user experience</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- Document Upload Section -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold gradient-text mb-6">📄 Upload Document</h2>
+                
+                <!-- File Upload Area -->
+                <div 
+                    class="file-upload-area rounded-lg p-8 text-center cursor-pointer"
+                    :class="{ 'dragover': isDragOver }"
+                    @click="triggerFileInput"
+                    @dragover.prevent="isDragOver = true"
+                    @dragleave.prevent="isDragOver = false"
+                    @drop.prevent="handleFileDrop"
+                >
+                    <input 
+                        ref="fileInput"
+                        type="file" 
+                        @change="handleFileSelect"
+                        accept=".pdf,.docx,.txt,.md"
+                        class="hidden"
+                    >
+                    
+                    <div v-if="!uploadedFile" class="space-y-4">
+                        <div class="text-6xl text-gray-400">📄</div>
+                        <div>
+                            <p class="text-lg font-medium text-gray-700">Drop your document here or click to browse</p>
+                            <p class="text-sm text-gray-500 mt-2">Supported formats: PDF, DOCX, TXT, MD (Max 10MB)</p>
+                        </div>
+                    </div>
+                    
+                    <div v-else class="space-y-4">
+                        <div class="text-6xl text-green-500">✅</div>
+                        <div>
+                            <p class="text-lg font-medium text-gray-700">{{ uploadedFile.name }}</p>
+                            <p class="text-sm text-gray-500">{{ formatFileSize(uploadedFile.size) }}</p>
+                        </div>
+                        <button 
+                            @click.stop="removeFile"
+                            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                        >
+                            Remove File
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Document Processing Status -->
+                <div v-if="isProcessing" class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="loading-spinner w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                        <span class="text-blue-700">Processing document...</span>
+                        <span class="text-sm text-gray-500">({{ processingProgress }}%)</span>
+                    </div>
+                </div>
+
+                <!-- Document Preview -->
+                <div v-if="documentPreview" class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">Document Preview</h3>
+                    <div class="max-h-64 overflow-y-auto text-sm text-gray-600">
+                        {{ documentPreview.substring(0, 500) }}{{ documentPreview.length > 500 ? '...' : '' }}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500">
+                        {{ documentStats.wordCount }} words, {{ documentStats.characterCount }} characters
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Generation Options -->
+            <div v-if="documentPreview" class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold gradient-text mb-6">🤖 Generate Content</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Content Type Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Content Type</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label 
+                                v-for="type in contentTypes" 
+                                :key="type.value"
+                                class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                                :class="{ 'border-blue-500 bg-blue-50': generationOptions.contentType === type.value }"
+                            >
+                                <input 
+                                    v-model="generationOptions.contentType"
+                                    type="radio" 
+                                    :value="type.value"
+                                    class="sr-only"
+                                >
+                                <div class="text-2xl mr-3">{{ type.icon }}</div>
+                                <div>
+                                    <div class="font-medium text-gray-800">{{ type.label }}</div>
+                                    <div class="text-sm text-gray-500">{{ type.description }}</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Generation Settings -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                            <input 
+                                v-model="generationOptions.subject"
+                                type="text"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., Physics, Mathematics, Biology"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Difficulty Level</label>
+                            <select 
+                                v-model="generationOptions.difficulty"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Number of Items</label>
+                            <input 
+                                v-model.number="generationOptions.count"
+                                type="number"
+                                min="1"
+                                max="20"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="mt-6">
+                    <button 
+                        @click="generateContent"
+                        :disabled="isGenerating"
+                        class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <span v-if="!isGenerating">🤖 Generate Content</span>
+                        <span v-else class="flex items-center justify-center">
+                            <div class="loading-spinner w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                            Generating... ({{ generationProgress }}%)
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Generated Content Display -->
+            <div v-if="generatedContent.length > 0" class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold gradient-text">✨ Generated Content</h2>
+                    <div class="space-x-2">
+                        <button 
+                            @click="downloadContent"
+                            class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                        >
+                            📥 Download All
+                        </button>
+                        <button 
+                            @click="saveContent"
+                            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                        >
+                            💾 Save to Library
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div 
+                        v-for="(item, index) in generatedContent" 
+                        :key="index"
+                        class="content-card bg-gray-50 rounded-lg p-4 fade-in"
+                    >
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-lg font-medium text-gray-800">{{ item.title }}</h3>
+                            <button 
+                                @click="copyToClipboard(item.content)"
+                                class="text-blue-500 hover:text-blue-700 text-sm"
+                            >
+                                📋 Copy
+                            </button>
+                        </div>
+                        <div class="text-gray-600 whitespace-pre-line">{{ item.content }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Indicator -->
+        <div v-if="showPerformanceIndicator" class="performance-indicator">
+            <div>Operations: {{ performanceData.overview.totalOperations }}</div>
+            <div>Avg Time: {{ performanceData.overview.averageResponseTime.toFixed(0) }}ms</div>
+            <div>Success: {{ performanceData.overview.successRate.toFixed(0) }}%</div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    // File upload
+                    uploadedFile: null,
+                    isDragOver: false,
+                    isProcessing: false,
+                    processingProgress: 0,
+                    
+                    // Document processing
+                    documentPreview: '',
+                    documentStats: {
+                        wordCount: 0,
+                        characterCount: 0
+                    },
+                    
+                    // AI generation
+                    generationOptions: {
+                        contentType: 'lesson-notes',
+                        subject: '',
+                        difficulty: 'intermediate',
+                        count: 5
+                    },
+                    generatedContent: [],
+                    isGenerating: false,
+                    generationProgress: 0,
+                    
+                    // Notifications
+                    notifications: [],
+                    
+                    // Performance monitoring
+                    performanceMonitor: null,
+                    performanceData: {
+                        overview: { totalOperations: 0, averageResponseTime: 0, successRate: 100, uptime: 0 },
+                        byOperation: {},
+                        recommendations: []
+                    },
+                    showPerformanceDashboard: false,
+                    showPerformanceIndicator: true,
+                    
+                    // Services
+                    documentService: null,
+                    aiService: null,
+                    firebaseService: null,
+                    
+                    // Content types
+                    contentTypes: [
+                        {
+                            value: 'lesson-notes',
+                            label: 'Lesson Notes',
+                            description: 'Comprehensive study materials',
+                            icon: '📝'
+                        },
+                        {
+                            value: 'quiz',
+                            label: 'Quiz Questions',
+                            description: 'Multiple choice questions',
+                            icon: '❓'
+                        },
+                        {
+                            value: 'flashcards',
+                            label: 'Flashcards',
+                            description: 'Interactive learning cards',
+                            icon: '🃏'
+                        },
+                        {
+                            value: 'summary',
+                            label: 'Summary',
+                            description: 'Key points overview',
+                            icon: '📋'
+                        }
+                    ]
+                }
+            },
+            methods: {
+                initializeNavigation() {
+                    // Initialize navigation system
+                    if (window.navigation) {
+                        const navContainer = document.getElementById('navigation-container');
+                        if (navContainer) {
+                            navContainer.innerHTML = window.navigation.generateNavigationHTML();
+                            window.navigation.initialize();
+                        }
+                    }
+                },
+                
+                // File handling
+                triggerFileInput() {
+                    this.$refs.fileInput.click();
+                },
+                
+                handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.processFile(file);
+                    }
+                },
+                
+                handleFileDrop(event) {
+                    this.isDragOver = false;
+                    const file = event.dataTransfer.files[0];
+                    if (file) {
+                        this.processFile(file);
+                    }
+                },
+                
+                async processFile(file) {
+                    // Validate file
+                    const validation = this.documentService.validateFile(file);
+                    if (!validation.isValid) {
+                        this.showNotification(validation.errors.join('\n'), 'error');
+                        return;
+                    }
+                    
+                    this.uploadedFile = file;
+                    this.isProcessing = true;
+                    this.processingProgress = 0;
+                    this.documentPreview = '';
+                    this.documentStats = { wordCount: 0, characterCount: 0 };
+                    
+                    try {
+                        this.showNotification('Processing document...', 'info');
+                        
+                        // Monitor document processing
+                        const result = await this.performanceMonitor.monitorDocumentProcessing(file, async () => {
+                            return await this.extractTextWithProgress(file);
+                        });
+                        
+                        if (!result || result.trim().length === 0) {
+                            throw new Error('No text could be extracted from the document');
+                        }
+                        
+                        // Process document
+                        const processed = this.documentService.processDocument(result, {
+                            maxLength: 10000,
+                            preserveStructure: true,
+                            extractKeyPoints: true
+                        });
+                        
+                        this.documentPreview = processed.text;
+                        this.documentStats = {
+                            wordCount: processed.wordCount,
+                            characterCount: processed.characterCount
+                        };
+                        
+                        // Auto-fill subject if empty
+                        if (!this.generationOptions.subject) {
+                            this.generationOptions.subject = this.extractSubjectFromText(processed.text);
+                        }
+                        
+                        this.showNotification('Document processed successfully!', 'success');
+                        this.updatePerformanceData();
+                        
+                    } catch (error) {
+                        console.error('Error processing file:', error);
+                        this.showNotification(`Error processing document: ${error.message}`, 'error');
+                        this.removeFile();
+                    } finally {
+                        this.isProcessing = false;
+                        this.processingProgress = 0;
+                    }
+                },
+                
+                async extractTextWithProgress(file) {
+                    const progressInterval = setInterval(() => {
+                        if (this.isProcessing && this.processingProgress < 90) {
+                            this.processingProgress += Math.random() * 10;
+                        }
+                    }, 200);
+                    
+                    try {
+                        const text = await this.documentService.extractText(file);
+                        this.processingProgress = 100;
+                        clearInterval(progressInterval);
+                        return text;
+                    } catch (error) {
+                        clearInterval(progressInterval);
+                        throw error;
+                    }
+                },
+                
+                removeFile() {
+                    this.uploadedFile = null;
+                    this.documentPreview = '';
+                    this.documentStats = { wordCount: 0, characterCount: 0 };
+                    this.generatedContent = [];
+                },
+                
+                // AI content generation
+                async generateContent() {
+                    if (!this.documentPreview) {
+                        this.showNotification('Please upload and process a document first.', 'warning');
+                        return;
+                    }
+                    
+                    this.isGenerating = true;
+                    this.generationProgress = 0;
+                    this.generatedContent = [];
+                    
+                    try {
+                        this.showNotification('Generating AI content...', 'info');
+                        
+                        // Monitor AI generation
+                        const content = await this.performanceMonitor.monitorAIGeneration(this.generationOptions, async () => {
+                            return await this.generateContentWithProgress();
+                        });
+                        
+                        if (content && content.length > 0) {
+                            this.generatedContent = content;
+                            this.showNotification(`Successfully generated ${content.length} content items!`, 'success');
+                            
+                            // Save to Firebase
+                            try {
+                                await this.saveGeneratedContentToFirebase(content);
+                            } catch (saveError) {
+                                console.warn('Failed to save to Firebase:', saveError);
+                                this.showNotification('Content generated but failed to save to library.', 'warning');
+                            }
+                        } else {
+                            this.showNotification('No content was generated. Please try with different settings.', 'warning');
+                        }
+                        
+                        this.updatePerformanceData();
+                        
+                    } catch (error) {
+                        console.error('Error generating content:', error);
+                        this.showNotification(`Error generating content: ${error.message}`, 'error');
+                    } finally {
+                        this.isGenerating = false;
+                        this.generationProgress = 0;
+                    }
+                },
+                
+                async generateContentWithProgress() {
+                    const progressInterval = setInterval(() => {
+                        if (this.isGenerating && this.generationProgress < 90) {
+                            this.generationProgress += Math.random() * 15;
+                        }
+                    }, 300);
+                    
+                    try {
+                        const content = await this.aiService.generateContentFromDocument(
+                            this.documentPreview,
+                            this.generationOptions
+                        );
+                        this.generationProgress = 100;
+                        clearInterval(progressInterval);
+                        return content;
+                    } catch (error) {
+                        clearInterval(progressInterval);
+                        throw error;
+                    }
+                },
+                
+                // Utility methods
+                formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                },
+                
+                formatUptime(ms) {
+                    const seconds = Math.floor(ms / 1000);
+                    const minutes = Math.floor(seconds / 60);
+                    const hours = Math.floor(minutes / 60);
+                    
+                    if (hours > 0) return `${hours}h ${minutes % 60}m`;
+                    if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+                    return `${seconds}s`;
+                },
+                
+                extractSubjectFromText(text) {
+                    const words = text.toLowerCase().split(' ');
+                    const subjects = ['physics', 'mathematics', 'biology', 'chemistry', 'history', 'geography', 'literature'];
+                    const foundSubject = subjects.find(subject => words.includes(subject));
+                    return foundSubject ? foundSubject.charAt(0).toUpperCase() + foundSubject.slice(1) : 'General';
+                },
+                
+                copyToClipboard(text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.showNotification('Content copied to clipboard!', 'success');
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                        this.showNotification('Failed to copy content', 'error');
+                    });
+                },
+                
+                downloadContent() {
+                    if (this.generatedContent.length === 0) {
+                        this.showNotification('No content to download!', 'warning');
+                        return;
+                    }
+                    
+                    let content = `# Generated ${this.generationOptions.contentType.replace('-', ' ').toUpperCase()}\n\n`;
+                    content += `Generated on: ${new Date().toLocaleDateString()}\n`;
+                    content += `Subject: ${this.generationOptions.subject}\n`;
+                    content += `Difficulty: ${this.generationOptions.difficulty}\n`;
+                    content += `Number of items: ${this.generationOptions.count}\n\n`;
+                    content += '---\n\n';
+                    
+                    this.generatedContent.forEach((item, index) => {
+                        content += `## ${item.title}\n\n${item.content}\n\n---\n\n`;
+                    });
+                    
+                    const blob = new Blob([content], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${this.generationOptions.subject}_${this.generationOptions.contentType}_${new Date().toISOString().split('T')[0]}.md`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    this.showNotification('Content downloaded successfully!', 'success');
+                },
+                
+                async saveContent() {
+                    try {
+                        await this.saveGeneratedContentToFirebase(this.generatedContent);
+                        this.showNotification('Content saved to your library!', 'success');
+                    } catch (error) {
+                        console.error('Error saving content:', error);
+                        this.showNotification('Error saving content. Please try again.', 'error');
+                    }
+                },
+                
+                async saveGeneratedContentToFirebase(content) {
+                    if (!this.firebaseService) return;
+                    
+                    const contentData = {
+                        userId: this.getCurrentUserId(),
+                        type: this.generationOptions.contentType,
+                        subject: this.generationOptions.subject,
+                        difficulty: this.generationOptions.difficulty,
+                        content: content,
+                        documentName: this.uploadedFile ? this.uploadedFile.name : 'Unknown',
+                        createdAt: new Date()
+                    };
+                    
+                    await this.firebaseService.saveGeneratedContent(contentData);
+                },
+                
+                getCurrentUserId() {
+                    const user = this.firebaseService ? this.firebaseService.getCurrentUser() : null;
+                    return user ? user.uid : 'anonymous';
+                },
+                
+                logout() {
+                    if (this.firebaseService) {
+                        this.firebaseService.signOutUser();
+                    }
+                    localStorage.removeItem('user');
+                    window.location.href = 'index.html';
+                },
+                
+                // Notification system
+                showNotification(message, type = 'info') {
+                    const notification = {
+                        id: Date.now(),
+                        message: message,
+                        type: type,
+                        timestamp: new Date()
+                    };
+                    
+                    this.notifications.push(notification);
+                    
+                    setTimeout(() => {
+                        this.removeNotification(notification.id);
+                    }, 5000);
+                },
+                
+                removeNotification(id) {
+                    const index = this.notifications.findIndex(n => n.id === id);
+                    if (index > -1) {
+                        this.notifications.splice(index, 1);
+                    }
+                },
+                
+                updatePerformanceData() {
+                    this.performanceData = this.performanceMonitor.getDashboardData();
+                }
+            },
+            async mounted() {
+                // Initialize navigation system
+                this.initializeNavigation();
+                
+                // Initialize services
+                this.documentService = new DocumentService();
+                this.aiService = new AIService();
+                this.firebaseService = new FirebaseService();
+                this.performanceMonitor = new PerformanceMonitor();
+                
+                // Update performance data every 5 seconds
+                setInterval(() => {
+                    this.updatePerformanceData();
+                }, 5000);
+                
+                this.showNotification('Document AI Generator loaded successfully!', 'success');
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

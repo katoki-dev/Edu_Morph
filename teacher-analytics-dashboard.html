@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Analytics Dashboard - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="ai-test-analytics.js"></script>
+    <script src="navigation.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #9333EA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .analytics-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+        
+        .analytics-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .difficulty-indicator {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .difficulty-easy {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .difficulty-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .difficulty-hard {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .strength-indicator {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .weakness-indicator {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .recommendation-card {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .recommendation-high {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .recommendation-medium {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .recommendation-low {
+            border-left: 4px solid #10b981;
+        }
+        
+        .student-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            transition: all 0.2s ease;
+        }
+        
+        .student-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        
+        .topic-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .progress-bar {
+            height: 0.5rem;
+            background: #e2e8f0;
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 0.25rem;
+            transition: width 0.3s ease;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            margin: 1rem 0;
+        }
+        
+        .filter-tab {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            text-align: center;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .filter-tab.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .insight-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+        
+        .insight-positive {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .insight-negative {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .insight-neutral {
+            background: #f1f5f9;
+            color: #475569;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app">
+        <!-- Navigation -->
+        <div id="navigation-container"></div>
+
+        <!-- Header -->
+        <section class="gradient-bg py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <div class="flex items-center justify-center mb-6">
+                        <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                            <span class="text-3xl">📊</span>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                        Teacher Analytics Dashboard
+                    </h1>
+                    <p class="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
+                        AI-powered test analysis, student insights, and curriculum support
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <div 
+                    class="filter-tab" 
+                    :class="{ active: activeTab === 'overview' }"
+                    @click="activeTab = 'overview'"
+                >
+                    📈 Overview
+                </div>
+                <div 
+                    class="filter-tab" 
+                    :class="{ active: activeTab === 'topics' }"
+                    @click="activeTab = 'topics'"
+                >
+                    📚 Topics Analysis
+                </div>
+                <div 
+                    class="filter-tab" 
+                    :class="{ active: activeTab === 'students' }"
+                    @click="activeTab = 'students'"
+                >
+                    👥 Student Performance
+                </div>
+                <div 
+                    class="filter-tab" 
+                    :class="{ active: activeTab === 'curriculum' }"
+                    @click="activeTab = 'curriculum'"
+                >
+                    🎯 Curriculum Support
+                </div>
+            </div>
+
+            <!-- Overview Tab -->
+            <div v-if="activeTab === 'overview'" class="space-y-6">
+                <!-- Key Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="metric-card">
+                        <div class="text-3xl font-bold text-blue-600">{{ overviewMetrics.averageScore }}%</div>
+                        <div class="text-sm text-gray-600">Average Score</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="text-3xl font-bold text-green-600">{{ overviewMetrics.totalStudents }}</div>
+                        <div class="text-sm text-gray-600">Total Students</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="text-3xl font-bold text-purple-600">{{ overviewMetrics.totalQuestions }}</div>
+                        <div class="text-sm text-gray-600">Total Questions</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="text-3xl font-bold text-orange-600">{{ overviewMetrics.difficultTopics }}</div>
+                        <div class="text-sm text-gray-600">Difficult Topics</div>
+                    </div>
+                </div>
+
+                <!-- Performance Chart -->
+                <div class="analytics-card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Performance Trends</h3>
+                    <div class="chart-container">
+                        <canvas ref="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Quick Insights -->
+                <div class="analytics-card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Insights</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-for="insight in quickInsights" :key="insight.id" class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <span class="text-2xl mr-3">{{ insight.icon }}</span>
+                                <span class="font-semibold text-gray-800">{{ insight.title }}</span>
+                            </div>
+                            <p class="text-sm text-gray-600">{{ insight.description }}</p>
+                            <div class="mt-2">
+                                <span 
+                                    class="insight-badge"
+                                    :class="insight.type === 'positive' ? 'insight-positive' : insight.type === 'negative' ? 'insight-negative' : 'insight-neutral'"
+                                >
+                                    {{ insight.action }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topics Analysis Tab -->
+            <div v-if="activeTab === 'topics'" class="space-y-6">
+                <!-- Topic Difficulty Overview -->
+                <div class="analytics-card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Topic Difficulty Analysis</h3>
+                    <div class="space-y-4">
+                        <div 
+                            v-for="topic in topicAnalysis" 
+                            :key="topic.name"
+                            class="topic-card"
+                        >
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-semibold text-gray-800">{{ topic.name }}</h4>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-600">{{ topic.averageScore.toFixed(1) }}%</span>
+                                    <span 
+                                        class="difficulty-indicator"
+                                        :class="getDifficultyClass(topic.averageDifficulty)"
+                                    >
+                                        {{ getDifficultyText(topic.averageDifficulty) }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="progress-bar mb-2">
+                                <div 
+                                    class="progress-fill" 
+                                    :style="`width: ${topic.averageScore}%`"
+                                ></div>
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>{{ topic.totalQuestions }} questions</span>
+                                <span>{{ topic.strugglingStudents }} struggling students</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Topic Performance Chart -->
+                <div class="analytics-card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Topic Performance Comparison</h3>
+                    <div class="chart-container">
+                        <canvas ref="topicChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Performance Tab -->
+            <div v-if="activeTab === 'students'" class="space-y-6">
+                <!-- Student List -->
+                <div class="analytics-card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Student Performance Overview</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div 
+                            v-for="student in studentPerformance" 
+                            :key="student.studentId"
+                            class="student-card"
+                            @click="selectedStudent = student"
+                        >
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-semibold text-gray-800">{{ student.studentName }}</h4>
+                                <span class="text-lg font-bold" :class="getScoreColor(student.overallScore)">
+                                    {{ student.overallScore.toFixed(1) }}%
+                                </span>
+                            </div>
+                            <div class="progress-bar mb-3">
+                                <div 
+                                    class="progress-fill" 
+                                    :style="`width: ${student.overallScore}%`"
+                                ></div>
+                            </div>
+                            <div class="space-y-2">
+                                <div v-if="student.strengths.length > 0">
+                                    <div class="text-xs text-gray-600 mb-1">Strengths:</div>
+                                    <div class="flex flex-wrap gap-1">
+                                        <span 
+                                            v-for="strength in student.strengths.slice(0, 2)" 
+                                            :key="strength.topic"
+                                            class="strength-indicator"
+                                        >
+                                            {{ strength.topic }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div v-if="student.weaknesses.length > 0">
+                                    <div class="text-xs text-gray-600 mb-1">Weaknesses:</div>
+                                    <div class="flex flex-wrap gap-1">
+                                        <span 
+                                            v-for="weakness in student.weaknesses.slice(0, 2)" 
+                                            :key="weakness.topic"
+                                            class="weakness-indicator"
+                                        >
+                                            {{ weakness.topic }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Detail Modal -->
+                <div v-if="selectedStudent" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click="selectedStudent = null">
+                    <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" @click.stop>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800">{{ selectedStudent.studentName }} - Detailed Analysis</h3>
+                            <button @click="selectedStudent = null" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Performance Overview -->
+                            <div>
+                                <h4 class="font-semibold text-gray-800 mb-3">Performance Overview</h4>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Overall Score:</span>
+                                        <span class="font-semibold">{{ selectedStudent.overallScore.toFixed(1) }}%</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Correct Answers:</span>
+                                        <span class="font-semibold">{{ selectedStudent.correctAnswers }}/{{ selectedStudent.totalQuestions }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Time Spent:</span>
+                                        <span class="font-semibold">{{ selectedStudent.timeSpent }} min</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Learning Style:</span>
+                                        <span class="font-semibold capitalize">{{ selectedStudent.learningStyle }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Topic Performance -->
+                            <div>
+                                <h4 class="font-semibold text-gray-800 mb-3">Topic Performance</h4>
+                                <div class="space-y-2">
+                                    <div 
+                                        v-for="topic in selectedStudent.topics" 
+                                        :key="topic.topic"
+                                        class="flex items-center justify-between p-2 bg-gray-50 rounded"
+                                    >
+                                        <span class="text-sm">{{ topic.topic }}</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-16 h-2 bg-gray-200 rounded">
+                                                <div 
+                                                    class="h-2 rounded" 
+                                                    :class="getScoreColor(topic.score)"
+                                                    :style="`width: ${topic.score}%`"
+                                                ></div>
+                                            </div>
+                                            <span class="text-sm font-semibold">{{ topic.score.toFixed(1) }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recommendations -->
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-800 mb-3">Personalized Recommendations</h4>
+                            <div class="space-y-2">
+                                <div 
+                                    v-for="rec in selectedStudent.recommendations" 
+                                    :key="rec.action"
+                                    class="recommendation-card"
+                                    :class="`recommendation-${rec.priority}`"
+                                >
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <div class="font-semibold text-gray-800">{{ rec.action }}</div>
+                                            <div class="text-sm text-gray-600 mt-1">{{ rec.timeline }}</div>
+                                            <div v-if="rec.resources" class="text-sm text-blue-600 mt-1">
+                                                Resources: {{ rec.resources.join(', ') }}
+                                            </div>
+                                        </div>
+                                        <span class="text-xs px-2 py-1 rounded" :class="`bg-${rec.priority === 'high' ? 'red' : rec.priority === 'medium' ? 'yellow' : 'green'}-100 text-${rec.priority === 'high' ? 'red' : rec.priority === 'medium' ? 'yellow' : 'green'}-800`">
+                                            {{ rec.priority }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Curriculum Support Tab -->
+            <div v-if="activeTab === 'curriculum'" class="space-y-6">
+                <!-- Teaching Recommendations -->
+                <div class="analytics-card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">AI-Powered Teaching Recommendations</h3>
+                    <div class="space-y-4">
+                        <div 
+                            v-for="rec in curriculumRecommendations" 
+                            :key="rec.topic"
+                            class="recommendation-card"
+                            :class="`recommendation-${rec.priority}`"
+                        >
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-800">{{ rec.topic }}</div>
+                                    <div class="text-sm text-gray-600 mt-1">{{ rec.recommendation }}</div>
+                                    <div class="text-sm text-blue-600 mt-1">{{ rec.timeline }}</div>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded" :class="`bg-${rec.priority === 'high' ? 'red' : rec.priority === 'medium' ? 'yellow' : 'green'}-100 text-${rec.priority === 'high' ? 'red' : rec.priority === 'medium' ? 'yellow' : 'green'}-800`">
+                                    {{ rec.priority }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Curriculum Gaps -->
+                <div class="analytics-card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Identified Curriculum Gaps</h3>
+                    <div class="space-y-3">
+                        <div 
+                            v-for="gap in curriculumGaps" 
+                            :key="gap.topic"
+                            class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+                        >
+                            <div class="font-semibold text-gray-800">{{ gap.topic }}</div>
+                            <div class="text-sm text-gray-600 mt-1">{{ gap.description }}</div>
+                            <div class="text-sm text-blue-600 mt-1">Suggested Action: {{ gap.action }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teaching Effectiveness -->
+                <div class="analytics-card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Teaching Effectiveness Analysis</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div class="font-semibold text-green-800">Effective Methods</div>
+                            <div class="text-sm text-green-600 mt-1">{{ teachingEffectiveness.effectiveMethods.join(', ') }}</div>
+                        </div>
+                        <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div class="font-semibold text-red-800">Areas for Improvement</div>
+                            <div class="text-sm text-red-600 mt-1">{{ teachingEffectiveness.improvementAreas.join(', ') }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    activeTab: 'overview',
+                    selectedStudent: null,
+                    analytics: null,
+                    testData: null,
+                    
+                    // Overview data
+                    overviewMetrics: {
+                        averageScore: 0,
+                        totalStudents: 0,
+                        totalQuestions: 0,
+                        difficultTopics: 0
+                    },
+                    
+                    quickInsights: [],
+                    
+                    // Topics data
+                    topicAnalysis: [],
+                    
+                    // Students data
+                    studentPerformance: [],
+                    
+                    // Curriculum data
+                    curriculumRecommendations: [],
+                    curriculumGaps: [],
+                    teachingEffectiveness: {
+                        effectiveMethods: [],
+                        improvementAreas: []
+                    }
+                }
+            },
+            
+            methods: {
+                // Initialize analytics
+                initializeAnalytics() {
+                    this.analytics = new AITestAnalytics();
+                    this.loadSampleData();
+                    this.initializeNavigation();
+                },
+                
+                // Initialize navigation
+                initializeNavigation() {
+                    if (window.navigation) {
+                        const navContainer = document.getElementById('navigation-container');
+                        if (navContainer) {
+                            navContainer.innerHTML = window.navigation.generateNavigationHTML();
+                            window.navigation.initialize();
+                        }
+                    }
+                },
+                
+                // Load sample data for demonstration
+                loadSampleData() {
+                    // Sample test data
+                    const sampleTestData = {
+                        id: 'test_001',
+                        name: 'Mathematics Midterm Exam',
+                        subject: 'Mathematics',
+                        date: new Date(),
+                        questions: [
+                            { id: 'q1', text: 'Solve the equation: 2x + 5 = 13', type: 'problem_solving' },
+                            { id: 'q2', text: 'Find the area of a circle with radius 7cm', type: 'problem_solving' },
+                            { id: 'q3', text: 'What is the derivative of x²?', type: 'problem_solving' },
+                            { id: 'q4', text: 'Calculate the mean of: 5, 8, 12, 15, 20', type: 'problem_solving' },
+                            { id: 'q5', text: 'Solve the quadratic equation: x² - 5x + 6 = 0', type: 'problem_solving' }
+                        ],
+                        students: [
+                            { id: 's1', name: 'Alice Johnson', score: 85, answers: [] },
+                            { id: 's2', name: 'Bob Smith', score: 72, answers: [] },
+                            { id: 's3', name: 'Carol Davis', score: 91, answers: [] },
+                            { id: 's4', name: 'David Wilson', score: 68, answers: [] },
+                            { id: 's5', name: 'Eva Brown', score: 78, answers: [] }
+                        ]
+                    };
+                    
+                    this.analyzeTestData(sampleTestData);
+                },
+                
+                // Analyze test data
+                async analyzeTestData(testData) {
+                    try {
+                        this.testData = await this.analytics.analyzeTestData(testData);
+                        this.updateOverviewMetrics();
+                        this.updateTopicAnalysis();
+                        this.updateStudentPerformance();
+                        this.updateCurriculumData();
+                        this.updateQuickInsights();
+                        this.$nextTick(() => {
+                            this.initializeCharts();
+                        });
+                    } catch (error) {
+                        console.error('Error analyzing test data:', error);
+                    }
+                },
+                
+                // Update overview metrics
+                updateOverviewMetrics() {
+                    if (!this.testData) return;
+                    
+                    this.overviewMetrics = {
+                        averageScore: this.testData.studentPerformance.reduce((sum, s) => sum + s.overallScore, 0) / this.testData.studentPerformance.length,
+                        totalStudents: this.testData.totalStudents,
+                        totalQuestions: this.testData.totalQuestions,
+                        difficultTopics: this.testData.topics.filter(t => t.averageScore < 70).length
+                    };
+                },
+                
+                // Update topic analysis
+                updateTopicAnalysis() {
+                    if (!this.testData) return;
+                    
+                    this.topicAnalysis = this.testData.topics.map(topic => ({
+                        ...topic,
+                        strugglingStudents: Math.floor(Math.random() * 3) + 1 // Sample data
+                    }));
+                },
+                
+                // Update student performance
+                updateStudentPerformance() {
+                    if (!this.testData) return;
+                    
+                    this.studentPerformance = this.testData.studentPerformance.map(student => ({
+                        ...student,
+                        strengths: [
+                            { topic: 'Algebra', score: 88 },
+                            { topic: 'Geometry', score: 92 }
+                        ],
+                        weaknesses: [
+                            { topic: 'Calculus', score: 45 },
+                            { topic: 'Statistics', score: 52 }
+                        ],
+                        recommendations: [
+                            {
+                                type: 'study',
+                                priority: 'high',
+                                action: 'Focus on Calculus fundamentals',
+                                resources: ['Khan Academy', 'Practice problems'],
+                                timeline: '2-3 weeks'
+                            }
+                        ]
+                    }));
+                },
+                
+                // Update curriculum data
+                updateCurriculumData() {
+                    this.curriculumRecommendations = [
+                        {
+                            topic: 'Calculus',
+                            recommendation: 'Use step-by-step problem solving with visual aids',
+                            priority: 'high',
+                            timeline: 'Next 2-3 classes'
+                        },
+                        {
+                            topic: 'Statistics',
+                            recommendation: 'Incorporate real-world examples and data visualization',
+                            priority: 'medium',
+                            timeline: 'Within 1 week'
+                        }
+                    ];
+                    
+                    this.curriculumGaps = [
+                        {
+                            topic: 'Problem-solving strategies',
+                            description: 'Students struggle with multi-step problem solving',
+                            action: 'Implement structured problem-solving framework'
+                        }
+                    ];
+                    
+                    this.teachingEffectiveness = {
+                        effectiveMethods: ['Visual aids', 'Step-by-step examples'],
+                        improvementAreas: ['Interactive activities', 'Peer collaboration']
+                    };
+                },
+                
+                // Update quick insights
+                updateQuickInsights() {
+                    this.quickInsights = [
+                        {
+                            id: 1,
+                            icon: '📈',
+                            title: 'Performance Trend',
+                            description: 'Overall class performance has improved by 8% compared to last test',
+                            type: 'positive',
+                            action: 'Continue current teaching methods'
+                        },
+                        {
+                            id: 2,
+                            icon: '⚠️',
+                            title: 'Attention Needed',
+                            description: 'Calculus topics show 35% lower performance than other areas',
+                            type: 'negative',
+                            action: 'Review teaching approach'
+                        },
+                        {
+                            id: 3,
+                            icon: '🎯',
+                            title: 'Focus Area',
+                            description: '3 students need additional support in problem-solving',
+                            type: 'neutral',
+                            action: 'Schedule extra help sessions'
+                        },
+                        {
+                            id: 4,
+                            icon: '💡',
+                            title: 'Teaching Tip',
+                            description: 'Visual learners respond well to your current approach',
+                            type: 'positive',
+                            action: 'Maintain visual teaching methods'
+                        }
+                    ];
+                },
+                
+                // Initialize charts
+                initializeCharts() {
+                    this.initializePerformanceChart();
+                    this.initializeTopicChart();
+                },
+                
+                // Initialize performance chart
+                initializePerformanceChart() {
+                    if (!this.$refs.performanceChart) return;
+                    
+                    const ctx = this.$refs.performanceChart.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                            datasets: [{
+                                label: 'Average Score',
+                                data: [72, 75, 78, 82, 85],
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100
+                                }
+                            }
+                        }
+                    });
+                },
+                
+                // Initialize topic chart
+                initializeTopicChart() {
+                    if (!this.$refs.topicChart) return;
+                    
+                    const ctx = this.$refs.topicChart.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: this.topicAnalysis.map(t => t.name),
+                            datasets: [{
+                                label: 'Average Score (%)',
+                                data: this.topicAnalysis.map(t => t.averageScore),
+                                backgroundColor: [
+                                    '#ef4444',
+                                    '#f59e0b',
+                                    '#10b981',
+                                    '#3b82f6',
+                                    '#8b5cf6'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100
+                                }
+                            }
+                        }
+                    });
+                },
+                
+                // Utility methods
+                getDifficultyClass(difficulty) {
+                    if (difficulty <= 4) return 'difficulty-easy';
+                    if (difficulty <= 7) return 'difficulty-medium';
+                    return 'difficulty-hard';
+                },
+                
+                getDifficultyText(difficulty) {
+                    if (difficulty <= 4) return 'Easy';
+                    if (difficulty <= 7) return 'Medium';
+                    return 'Hard';
+                },
+                
+                getScoreColor(score) {
+                    if (score >= 80) return 'text-green-600';
+                    if (score >= 60) return 'text-yellow-600';
+                    return 'text-red-600';
+                }
+            },
+            
+            mounted() {
+                this.initializeAnalytics();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

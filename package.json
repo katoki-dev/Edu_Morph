@@ -1,0 +1,41 @@
+{
+  "name": "edu-morph",
+  "version": "1.0.0",
+  "description": "AI-Powered Adaptive Learning Platform for Educators",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000",
+    "build": "echo 'Build process would go here'",
+    "test": "echo 'Tests would go here'"
+  },
+  "keywords": [
+    "education",
+    "ai",
+    "learning",
+    "adaptive",
+    "content-generation",
+    "vue.js",
+    "tailwindcss"
+  ],
+  "author": "Edu-Morph Team (Abhilash, Anirudh, Amay)",
+  "license": "MIT",
+  "dependencies": {
+    "vue": "^3.3.0",
+    "chart.js": "^4.4.0",
+    "firebase": "^10.7.1",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.6.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edu-morph/adaptive-learning-platform"
+  },
+  "bugs": {
+    "url": "https://github.com/edu-morph/adaptive-learning-platform/issues"
+  },
+  "homepage": "https://edu-morph.github.io/adaptive-learning-platform"
+}

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - EDU-MORPH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #9333EA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+        
+        .shape:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            top: 40%;
+            left: 80%;
+            animation-delay: 4s;
+        }
+        
+        .shape:nth-child(4) {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 1s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        
+        .glow-effect:hover {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="app">
+        <!-- Hero Background with Floating Shapes -->
+        <div class="hero-bg min-h-screen flex items-center justify-center relative">
+            <!-- Floating Shapes -->
+            <div class="floating-shapes">
+                <div class="shape"></div>
+                <div class="shape"></div>
+                <div class="shape"></div>
+                <div class="shape"></div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="absolute top-0 left-0 right-0 bg-transparent backdrop-blur-md shadow-lg z-10 border-b border-white/20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <a href="index.html" class="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-300 cursor-pointer">
+                            <div class="w-10 h-10 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 shadow-lg overflow-hidden">
+                                <img src="logo.png" alt="EDU-MORPH Logo" class="w-8 h-8 object-contain">
+                            </div>
+                            <span class="text-xl font-bold text-white drop-shadow-lg">EDU-MORPH</span>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="login-simple.html" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 font-medium">Login</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+            <!-- Main Content -->
+            <div class="w-full max-w-md mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="glass-card rounded-2xl p-8 space-y-8">
+                    <div class="text-center">
+                        <h2 class="text-3xl font-extrabold text-white mb-2">
+                            Join EDU-MORPH
+                        </h2>
+                        <p class="text-gray-200 text-lg">
+                            Create your account and start learning
+                        </p>
+                    </div>
+                
+                    <form @submit.prevent="handleSignup" class="space-y-6">
+                        <div class="space-y-4">
+                            <!-- First Name -->
+                            <div>
+                                <label for="firstName" class="block text-sm font-medium text-gray-200 mb-2">First Name</label>
+                                <input v-model="signupForm.firstName" id="firstName" name="firstName" type="text" required
+                                       class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm"
+                                       placeholder="Enter your first name">
+                            </div>
+
+                            <!-- Last Name -->
+                            <div>
+                                <label for="lastName" class="block text-sm font-medium text-gray-200 mb-2">Last Name</label>
+                                <input v-model="signupForm.lastName" id="lastName" name="lastName" type="text" required
+                                       class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm"
+                                       placeholder="Enter your last name">
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-200 mb-2">Email Address</label>
+                                <input v-model="signupForm.email" id="email" name="email" type="email" required
+                                       class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm"
+                                       placeholder="Enter your email">
+                            </div>
+
+                            <!-- Password -->
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-200 mb-2">Password</label>
+                                <input v-model="signupForm.password" id="password" name="password" type="password" required
+                                       class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm"
+                                       placeholder="Create a password">
+                            </div>
+
+                            <!-- Role Selection -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-200 mb-3">I am a:</label>
+                                <div class="space-y-3">
+                                    <label class="flex items-center p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors duration-200 cursor-pointer">
+                                        <input v-model="signupForm.role" type="radio" value="student" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-white/30 bg-transparent">
+                                        <span class="ml-3 text-sm text-gray-200 font-medium">Student</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors duration-200 cursor-pointer">
+                                        <input v-model="signupForm.role" type="radio" value="educator" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-white/30 bg-transparent">
+                                        <span class="ml-3 text-sm text-gray-200 font-medium">Educator</span>
+                                    </label>
+                                </div>
+                            </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div v-if="signupForm.error" class="text-red-400 text-sm text-center">
+                        {{ signupForm.error }}
+                    </div>
+
+                    <!-- Success Message -->
+                    <div v-if="signupForm.success" class="text-green-400 text-sm text-center">
+                        {{ signupForm.success }}
+                    </div>
+
+                        <!-- Submit Button -->
+                        <div>
+                            <button type="submit" :disabled="isLoading"
+                                    class="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 glow-effect">
+                                <span v-if="!isLoading">Create Account</span>
+                                <span v-else>Creating Account...</span>
+                            </button>
+                        </div>
+
+                        <!-- Login Link -->
+                        <div class="text-center">
+                            <span class="text-gray-300">Already have an account?</span>
+                            <a href="login-simple.html" class="ml-1 text-blue-300 hover:text-blue-200 transition-colors duration-300 font-medium">
+                                Sign in here
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        // Supabase configuration
+        const SUPABASE_URL = 'https://cebrqzdpjksxozfqbetd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlYnJxemRwamtzeG96ZnFiZXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3OTIxMzcsImV4cCI6MjA3MzM2ODEzN30._kdp2jItLixL0LRiBjYYCIJvBYRg4VaF2ZgtwDfiEd0';
+
+        // Helper function to make Supabase requests
+        async function supabaseRequest(endpoint, options = {}) {
+            const url = `${SUPABASE_URL}${endpoint}`;
+            const headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation', // This ensures we get the created data back
+                ...options.headers
+            };
+            
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers
+                });
+                
+                if (response.status === 201) {
+                    // For POST requests, return the created data
+                    const data = await response.json();
+                    return { data: data, error: null };
+                }
+                
+                if (response.status === 204) {
+                    return { data: null, error: null };
+                }
+                
+                const data = await response.json();
+                return {
+                    data: response.ok ? data : null,
+                    error: response.ok ? null : { message: data.message || data.error_description || 'Request failed' }
+                };
+            } catch (error) {
+                return {
+                    data: null,
+                    error: { message: error.message }
+                };
+            }
+        }
+
+        createApp({
+            data() {
+                return {
+                    signupForm: {
+                        firstName: '',
+                        lastName: '',
+                        email: '',
+                        password: '',
+                        role: 'student',
+                        error: '',
+                        success: ''
+                    },
+                    isLoading: false
+                }
+            },
+            methods: {
+                async handleSignup() {
+                    // Clear previous messages
+                    this.signupForm.error = '';
+                    this.signupForm.success = '';
+                    
+                    // Basic validation
+                    if (!this.signupForm.firstName || !this.signupForm.lastName || !this.signupForm.email || !this.signupForm.password) {
+                        this.signupForm.error = 'Please fill in all fields.';
+                        return;
+                    }
+
+                    if (this.signupForm.password.length < 6) {
+                        this.signupForm.error = 'Password must be at least 6 characters long.';
+                        return;
+                    }
+
+                    this.isLoading = true;
+
+                    try {
+                        // Try Supabase first
+                        const userData = {
+                            email: this.signupForm.email,
+                            first_name: this.signupForm.firstName,
+                            last_name: this.signupForm.lastName,
+                            role: this.signupForm.role
+                        };
+
+                        console.log('Attempting Supabase signup:', userData);
+
+                        // Save to Supabase database using the simple_users table
+                        const { data, error } = await supabaseRequest('/rest/v1/simple_users', {
+                            method: 'POST',
+                            body: JSON.stringify(userData)
+                        });
+
+                        if (error) {
+                            console.warn('Supabase signup failed, falling back to localStorage:', error);
+                            throw new Error('Supabase unavailable');
+                        }
+
+                        // Supabase success - get the created user ID
+                        const createdUser = Array.isArray(data) ? data[0] : data;
+                        const userId = createdUser?.id || 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        
+                        const userSessionData = {
+                            id: userId,
+                            email: userData.email,
+                            firstName: userData.first_name,
+                            lastName: userData.last_name,
+                            name: `${userData.first_name} ${userData.last_name}`,
+                            role: userData.role,
+                            signupTime: new Date().toISOString(),
+                            source: 'supabase'
+                        };
+
+                        // Store user data in localStorage for session management
+                        localStorage.setItem('user', JSON.stringify(userSessionData));
+
+                        this.signupForm.success = 'Account created successfully! Welcome to EDU-MORPH!';
+                        
+                        // Redirect to dashboard after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = 'dashboard-simple.html';
+                        }, 2000);
+                        
+                    } catch (supabaseError) {
+                        console.log('Supabase failed, using localStorage fallback');
+                        
+                        try {
+                            // Fallback to localStorage
+                            const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+                            const existingUser = existingUsers.find(user => user.email === this.signupForm.email);
+                            
+                            if (existingUser) {
+                                this.signupForm.error = 'An account with this email already exists. Please log in instead.';
+                                return;
+                            }
+
+                            // Create user data for localStorage
+                            const userData = {
+                                id: 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                                email: this.signupForm.email,
+                                firstName: this.signupForm.firstName,
+                                lastName: this.signupForm.lastName,
+                                name: `${this.signupForm.firstName} ${this.signupForm.lastName}`,
+                                role: this.signupForm.role,
+                                signupTime: new Date().toISOString(),
+                                source: 'localStorage'
+                            };
+
+                            console.log('Using localStorage fallback:', userData);
+
+                            // Save to localStorage
+                            existingUsers.push(userData);
+                            localStorage.setItem('users', JSON.stringify(existingUsers));
+
+                            // Store user data in localStorage for session management
+                            localStorage.setItem('user', JSON.stringify(userData));
+
+                            this.signupForm.success = 'Account created successfully! (Offline mode)';
+                            
+                            // Redirect to dashboard after 2 seconds
+                            setTimeout(() => {
+                                window.location.href = 'dashboard-simple.html';
+                            }, 2000);
+                            
+                        } catch (localStorageError) {
+                            this.signupForm.error = 'Signup failed. Please try again.';
+                            console.error('Both Supabase and localStorage failed:', localStorageError);
+                        }
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
