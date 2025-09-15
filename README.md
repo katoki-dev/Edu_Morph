@@ -29,7 +29,7 @@ A modern, AI-powered educational platform that revolutionizes content creation f
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/katoki-dev/Edu_Morph.git
    cd Srujana_hackathon_Edu-Morph
    ```
 
